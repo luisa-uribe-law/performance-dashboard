@@ -1,0 +1,341 @@
+[
+  {
+    "displayName": "Angel Alejandro Zambrano Neira",
+    "jiraNames": [
+      "Angel Alejandro Zambrano Neira"
+    ],
+    "email": "angel.zambrano@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Tech Lead",
+    "active": true
+  },
+  {
+    "displayName": "Andres Salazar Galeano",
+    "jiraNames": [
+      "Andres Salazar Galeano"
+    ],
+    "email": "andres.salazar@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Juan Quintana",
+    "jiraNames": [
+      "Juan Quintana"
+    ],
+    "email": "juan.quintana@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Denys Arturo Rosario Coste",
+    "jiraNames": [
+      "Denys Arturo Rosario Coste"
+    ],
+    "email": "denys.rosario@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Lucas Maximiliano Bacelo",
+    "jiraNames": [
+      "Lucas Maximiliano Bacelo"
+    ],
+    "email": "lucas.bacelo@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": true,
+    "activeFrom": "2026-03"
+  },
+  {
+    "displayName": "Nicolas Peñaloza Gamba",
+    "jiraNames": [
+      "Nicolas Peñaloza Gamba"
+    ],
+    "email": "nicolas.penaloza@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": false,
+    "activeTo": "2026-02"
+  },
+  {
+    "displayName": "Andres Callejas",
+    "jiraNames": [
+      "Andres Callejas"
+    ],
+    "email": "",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": false,
+    "activeTo": "2026-02"
+  },
+  {
+    "displayName": "Gabriel Lorenzatti",
+    "jiraNames": [
+      "Gabriel Lorenzatti"
+    ],
+    "email": "",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": false,
+    "activeTo": "2026-02"
+  },
+  {
+    "displayName": "Jorge David Saenz Diaz",
+    "jiraNames": [
+      "Jorge David Saenz Diaz"
+    ],
+    "email": "jorge.saenz@y.uno",
+    "github": "",
+    "group": "mortifagos",
+    "role": "Developer",
+    "active": false,
+    "activeTo": "2026-02"
+  },
+  {
+    "displayName": "Juan Ignacio Rzeszut",
+    "jiraNames": [
+      "Juan Ignacio Rzeszut"
+    ],
+    "email": "juan.rzeszut@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Tech Lead",
+    "active": true
+  },
+  {
+    "displayName": "Garvit Gupta",
+    "jiraNames": [
+      "Garvit Gupta"
+    ],
+    "email": "garvit.gupta@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Sudheer Kumar Puppala",
+    "jiraNames": [
+      "Sudheer Kumar Puppala"
+    ],
+    "email": "sudheer.puppala@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Marcos Isaac Stupnicki",
+    "jiraNames": [
+      "Marcos Isaac Stupnicki"
+    ],
+    "email": "marcos.stupnicki@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Daniela Perea Tarapuez",
+    "jiraNames": [
+      "Daniela Perea Tarapuez"
+    ],
+    "email": "daniela.perea@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "William Hung",
+    "jiraNames": [
+      "William Hung"
+    ],
+    "email": "hung.william@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true,
+    "activeFrom": "2026-03"
+  },
+  {
+    "displayName": "Wilson Alirio Delgado Hernandez",
+    "jiraNames": [
+      "Wilson Alirio Delgado Hernandez"
+    ],
+    "email": "wilson.delgado@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true,
+    "activeFrom": "2026-03"
+  },
+  {
+    "displayName": "Daniel Betancurth",
+    "jiraNames": [
+      "Daniel Betancurth"
+    ],
+    "email": "daniel.betancurth@y.uno",
+    "github": "",
+    "group": "the-hallows",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Juan David Canal Vera",
+    "jiraNames": [
+      "Juan David Canal Vera"
+    ],
+    "email": "juan.canal@y.uno",
+    "github": "",
+    "group": "dementors",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Martin Ezequiel Sandroni",
+    "jiraNames": [
+      "Martin Ezequiel Sandroni"
+    ],
+    "email": "martin.sandroni@y.uno",
+    "github": "",
+    "group": "dementors",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Nicolas Agustin Carolo",
+    "jiraNames": [
+      "Nicolas Agustin Carolo"
+    ],
+    "email": "nicolas.carolo@y.uno",
+    "github": "",
+    "group": "dementors",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Ever Daniel Rivera Inagan",
+    "jiraNames": [
+      "Ever Daniel Rivera Inagan"
+    ],
+    "email": "ever.rivera@y.uno",
+    "github": "",
+    "group": "dementors",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Neller Pellegrino Baquero",
+    "jiraNames": [
+      "Neller Pellegrino Baquero"
+    ],
+    "email": "neller.pellegrino@y.uno",
+    "github": "",
+    "group": "dementors",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Alexander Herrera",
+    "jiraNames": [
+      "Alexander Herrera"
+    ],
+    "email": "alexander.herrera@y.uno",
+    "github": "",
+    "group": "dementors",
+    "role": "Developer",
+    "active": false,
+    "activeTo": "2026-02"
+  },
+  {
+    "displayName": "Vivek Hasmukhbhai Rajpara",
+    "jiraNames": [
+      "Vivek Hasmukhbhai Rajpara"
+    ],
+    "email": "vivek.rajpara@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Daniel Andres Hernandez Oyola",
+    "jiraNames": [
+      "Daniel Andres Hernandez Oyola"
+    ],
+    "email": "daniel.hernandez@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Emmanuel Rocha",
+    "jiraNames": [
+      "Emmanuel Rocha"
+    ],
+    "email": "emmanuel.rocha@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Diego Alberto Leon Lopez",
+    "jiraNames": [
+      "Diego Alberto Leon Lopez"
+    ],
+    "email": "diego.leon@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Julie Santiago",
+    "jiraNames": [
+      "Julie Santiago"
+    ],
+    "email": "julie.santiago@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": true
+  },
+  {
+    "displayName": "Jhonatan Romero",
+    "jiraNames": [
+      "Jhonatan Romero"
+    ],
+    "email": "jhonatan.romero@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": false,
+    "activeTo": "2026-03"
+  },
+  {
+    "displayName": "Augusto Ezequiel Arguello",
+    "jiraNames": [
+      "Augusto Ezequiel Arguello"
+    ],
+    "email": "augusto.arguello@y.uno",
+    "github": "",
+    "group": "dedicated-oncall",
+    "role": "Developer",
+    "active": true
+  }
+]

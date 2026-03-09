@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.env
+.env.local
+out/
+
+# Inspection/debug scripts
+scripts/check-*.mjs
+scripts/inspect-*.mjs
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Misc
+span_query_v3.py
+src/data/

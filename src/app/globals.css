@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+:root {
+  /* ── Yuno Brand ── */
+  --yuno-blue: #4D5BF9;
+  --yuno-blue-light: #7B88FF;
+
+  /* ── Surfaces ── lighter, cleaner dark */
+  --background: #1C1E2E;
+  --surface: #252838;
+  --surface-hover: #2E3148;
+  --card: #252838;
+  --card-hover: #2C2F42;
+  --border: #353858;
+  --border-light: #454870;
+
+  /* ── Text ── bright and legible */
+  --foreground: #FFFFFF;
+  --foreground-secondary: #E4E6F4;
+  --muted: #B0B4D0;
+  --muted-dim: #7A7EA0;
+
+  /* ── Semantic ── restrained palette, mostly blue + purple */
+  --accent: #4D5BF9;
+  --accent-light: #7B88FF;
+  --success: #6CCF7F;
+  --warning: #E8A44A;
+  --danger: #E06060;
+  --oncall: #A78BFA;
+  --oncall-light: #C4B5FD;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Fade-in animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+.anim-d1 { animation-delay: 0.04s; opacity: 0; }
+.anim-d2 { animation-delay: 0.08s; opacity: 0; }
+.anim-d3 { animation-delay: 0.12s; opacity: 0; }
+.anim-d4 { animation-delay: 0.16s; opacity: 0; }
+
+/* Progress bar animation */
+@keyframes growWidth {
+  from { width: 0%; }
+}
+.animate-grow {
+  animation: growWidth 0.8s ease-out forwards;
+}
+
+/* Section divider label */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Chat markdown styling */
+.chat-markdown p { margin: 0.25em 0; }
+.chat-markdown ul, .chat-markdown ol { margin: 0.25em 0; padding-left: 1.25em; }
+.chat-markdown li { margin: 0.15em 0; }
+.chat-markdown li::marker { color: var(--muted-dim); }
+.chat-markdown strong { color: var(--foreground); font-weight: 600; }
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+  font-size: 0.85em;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0.5em 0 0.25em;
+}
+.chat-markdown table {
+  width: 100%;
+  font-size: 0.85em;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+.chat-markdown th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding: 0.25em 0.5em;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.chat-markdown td {
+  padding: 0.25em 0.5em;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+.chat-markdown code {
+  background: var(--surface);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}

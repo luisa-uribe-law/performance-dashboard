@@ -1,12 +1,12 @@
 import { PerformanceData, DeveloperMonthly, MonthlyTeamMetrics } from "./types";
-import { computeSpeedAwards, computeOnCallHeroes, computeHelpingHand, getAiAdoptionCategories, getBugFreeDevs } from "./scoring";
+import { computeSpeedAwards, computeOnCallHeroes, computeHelpingHand, getBugFreeDevs } from "./scoring";
 
 // ── Tool definitions for Claude ──
 
 export const TOOL_DEFINITIONS = [
   {
     name: "get_developer_metrics",
-    description: "Get detailed performance metrics for a specific developer in a given month. Returns tasks completed, weighted tasks, OTD%, bugs, AI ratio, on-call tickets, SLA, resolution time, and lists of individual tickets.",
+    description: "Get detailed performance metrics for a specific developer in a given month. Returns tasks completed, weighted tasks, OTD%, bugs, on-call tickets, SLA, resolution time, and lists of individual tickets.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -18,7 +18,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: "get_team_summary",
-    description: "Get team-level KPIs for a given month: total tasks, tasks/developer, OTD%, bugs, tickets resolved, SLA%, team AI ratio, median resolution.",
+    description: "Get team-level KPIs for a given month: total tasks, tasks/developer, OTD%, bugs, tickets resolved, SLA%, median resolution.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -41,7 +41,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: "get_rankings",
-    description: "Get ranked lists of developers by a specific metric for a given month. Supports: tasksCompleted, weightedTasks, onTimeDeliveryPct, prodBugs, sbxBugs, aiCodeRatio, ticketsResolved, slaCompliancePct, medianResolutionHrs.",
+    description: "Get ranked lists of developers by a specific metric for a given month. Supports: tasksCompleted, weightedTasks, onTimeDeliveryPct, prodBugs, sbxBugs, ticketsResolved, slaCompliancePct, medianResolutionHrs.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -56,7 +56,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: "get_awards",
-    description: "Get computed awards and highlights for a month: highest output, most timely, on-call heroes (ticket machine, fastest resolution, SLA champion), helping hand, bug-free developers, top AI adopter.",
+    description: "Get computed awards and highlights for a month: highest output, most timely, on-call heroes (ticket machine, fastest resolution, SLA champion), helping hand, bug-free developers.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -117,7 +117,6 @@ function devSummary(d: DeveloperMonthly) {
     onTimeDeliveryPct: d.onTimeDeliveryPct,
     prodBugs: d.prodBugs,
     sbxBugs: d.sbxBugs,
-    aiCodeRatio: d.aiCodeRatio,
     ticketsResolved: d.ticketsResolved,
     slaCompliancePct: d.slaCompliancePct,
     medianResolutionHrs: d.medianResolutionHrs,
@@ -194,13 +193,11 @@ export function executeTool(
       const speed = computeSpeedAwards(devs);
       const heroes = computeOnCallHeroes(devs);
       const helping = computeHelpingHand(devs);
-      const { topAdopter } = getAiAdoptionCategories(devs);
       const bugFree = getBugFreeDevs(devs);
       return JSON.stringify({
         integrationHighlights: {
           highestOutput: speed.highestOutput ? { developer: speed.highestOutput.developer, weightedTasks: speed.highestOutput.weightedTasks, tasksCompleted: speed.highestOutput.tasksCompleted } : null,
           mostTimely: speed.mostTimely ? { developer: speed.mostTimely.developer, onTimeDeliveryPct: speed.mostTimely.onTimeDeliveryPct, tasksCompleted: speed.mostTimely.tasksCompleted } : null,
-          topAiAdopter: topAdopter ? { developer: topAdopter.developer, aiCodeRatio: topAdopter.aiCodeRatio } : null,
           bugFreeDevelopers: bugFree,
         },
         onCallHighlights: {
@@ -258,7 +255,6 @@ export function executeTool(
           totalSbxBugs: members.reduce((s, d) => s + d.sbxBugs, 0),
           totalTicketsResolved: members.reduce((s, d) => s + d.ticketsResolved, 0),
           avgSla: count > 0 ? +(members.reduce((s, d) => s + d.slaCompliancePct, 0) / count).toFixed(1) : 0,
-          avgAiRatio: count > 0 ? +(members.reduce((s, d) => s + d.aiCodeRatio, 0) / count).toFixed(1) : 0,
           members: members.map(d => d.developer),
         };
       }
@@ -287,7 +283,6 @@ export function buildSystemPrompt(data: PerformanceData, currentMonth: string): 
     otd: d.onTimeDeliveryPct,
     prodBugs: d.prodBugs,
     sbxBugs: d.sbxBugs,
-    ai: d.aiCodeRatio,
     tickets: d.ticketsResolved,
     sla: d.slaCompliancePct,
     resHrs: d.medianResolutionHrs,
@@ -339,7 +334,6 @@ The Integrations team has ~26 developers organized into:
 - **On-Time Delivery (OTD%)**: % of DEM tasks completed by their due date
 - **PROD Bugs**: Production bugs attributed via Jira "Responsible Party of the Bug" field
 - **SBX Bugs**: In-Sprint Bugs from DEM board (found during QA/testing)
-- **AI Code Ratio**: % of code written with AI assistance (from Span API)
 - **SLA Compliance**: % of YSHUB tickets resolved within SLA target
 - **Median Resolution**: Median elapsed time to resolve YSHUB tickets
 
@@ -348,7 +342,7 @@ Months with data: ${availableMonths.join(", ")}
 Currently viewing: **${currentMonth}**
 
 ## Current Month Snapshot (${currentMonth})
-${currentTeam ? `Team KPIs: ${currentTeam.tasksCompleted} tasks, ${currentTeam.tasksPerDeveloper} tasks/dev, ${currentTeam.onTimeDeliveryPct}% OTD, ${currentTeam.prodBugs} PROD bugs, ${currentTeam.sbxBugs} SBX bugs, ${currentTeam.ticketsResolved} tickets, ${currentTeam.slaCompliancePct}% SLA, ${currentTeam.teamAiRatio}% AI ratio` : "No team data"}
+${currentTeam ? `Team KPIs: ${currentTeam.tasksCompleted} tasks, ${currentTeam.tasksPerDeveloper} tasks/dev, ${currentTeam.onTimeDeliveryPct}% OTD, ${currentTeam.prodBugs} PROD bugs, ${currentTeam.sbxBugs} SBX bugs, ${currentTeam.ticketsResolved} tickets, ${currentTeam.slaCompliancePct}% SLA` : "No team data"}
 
 Developers (${currentDevs.length}):
 ${JSON.stringify(compactDevs)}

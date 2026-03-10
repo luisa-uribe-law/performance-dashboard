@@ -1,7 +1,7 @@
 "use client";
 
 import { DeveloperMonthly } from "@/lib/types";
-import { computeSpeedAwards, computeOnCallHeroes, computeHelpingHand, getAiAdoptionCategories, getBugFreeDevs } from "@/lib/scoring";
+import { computeSpeedAwards, computeOnCallHeroes, computeHelpingHand, getBugFreeDevs } from "@/lib/scoring";
 
 interface Props {
   developers: DeveloperMonthly[];
@@ -33,7 +33,6 @@ export default function Insights({ developers, onDevClick }: Props) {
   const { highestOutput, mostTimely } = computeSpeedAwards(developers);
   const heroes = computeOnCallHeroes(developers);
   const helpingHand = computeHelpingHand(developers);
-  const { topAdopter } = getAiAdoptionCategories(developers);
   const bugFree = getBugFreeDevs(developers);
 
   const integrationDevs = developers.filter(d => d.group !== "dedicated-oncall");
@@ -47,12 +46,6 @@ export default function Insights({ developers, onDevClick }: Props) {
           <span style={{ color: "var(--accent)" }}>Integration Highlights</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {topAdopter && (
-            <InsightCard label="Top AI Adopter" name={topAdopter.developer}
-              description={`${topAdopter.aiCodeRatio}% AI code ratio — highest on the team. Leading AI-assisted development adoption.`}
-              color="var(--accent)" deactivated={topAdopter.deactivated}
-              onClick={() => onDevClick(topAdopter.developer)} />
-          )}
           {highestOutput && (
             <InsightCard label="Highest Throughput" name={highestOutput.developer}
               description={`${highestOutput.weightedTasks} weighted tasks from ${highestOutput.tasksCompleted} DEM tickets. Most productive integration output.`}

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { DeveloperMonthly, MonthlyTeamMetrics } from "@/lib/types";
-import { getAiAdoptionCategories } from "@/lib/scoring";
 import { formatMonth } from "@/lib/format";
 import TrendChart from "../shared/TrendChart";
 import SectionCard from "../shared/SectionCard";
@@ -19,7 +18,6 @@ const tabs = [
   { id: "tasks", label: "Tasks" },
   { id: "otd", label: "On-Time" },
   { id: "bugs", label: "Bugs" },
-  { id: "ai", label: "AI" },
 ] as const;
 
 function MiniStat({ label, value, color }: { label: string; value: string; color: string }) {
@@ -49,11 +47,6 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
 
   const latest = teamData[teamData.length - 1];
   const prev = teamData.length >= 2 ? teamData[teamData.length - 2] : null;
-
-  // AI data
-  const sortedAi = [...developers].sort((a, b) => b.aiCodeRatio - a.aiCodeRatio);
-  const avgRatio = developers.length > 0 ? Math.round(developers.reduce((s, d) => s + d.aiCodeRatio, 0) / developers.length) : 0;
-  const { belowThreshold } = getAiAdoptionCategories(developers);
 
   // Tasks data — sorted by DEM tasks, show WT as secondary metric
   const sortedByTasks = [...developers].filter(d => d.tasksCompleted > 0 || d.weightedTasks > 0).sort((a, b) => b.tasksCompleted - a.tasksCompleted);
@@ -192,50 +185,6 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
         </div>
       )}
 
-      {/* AI tab */}
-      {tab === "ai" && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-3 gap-2">
-            <MiniStat label="Team Avg" value={`${avgRatio}%`} color="var(--accent)" />
-            <MiniStat label="Below 40%" value={`${belowThreshold.length}`} color={belowThreshold.length > 0 ? "var(--danger)" : "var(--accent)"} />
-            <MiniStat label="vs Last Month" value={prev ? `${latest!.teamAiRatio - prev.teamAiRatio >= 0 ? "+" : ""}${latest!.teamAiRatio - prev.teamAiRatio}pp` : "-"} color={prev && latest!.teamAiRatio >= prev.teamAiRatio ? "var(--success)" : "var(--danger)"} />
-          </div>
-
-          {/* Team trend */}
-          <div>
-            <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Team Trend</div>
-            <TrendChart
-              data={teamData}
-              xKey="month"
-              areas={[{ key: "teamAiRatio", color: "var(--accent)", name: "Team AI %" }]}
-              yDomain={[0, 100]}
-              yFormatter={(v) => `${v}%`}
-              height={120}
-              partialLast={isPartialMonth}
-            />
-          </div>
-
-          {/* Individual bars */}
-          <div>
-            <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Individual Breakdown</div>
-            <div className="space-y-0 max-h-[300px] overflow-y-auto pr-1">
-              {sortedAi.map(d => {
-                const pct = Math.min(100, d.aiCodeRatio);
-                const color = d.aiCodeRatio < 40 ? "var(--danger)" : "var(--accent)";
-                return (
-                  <button key={d.developer} onClick={() => onDevClick(d.developer)} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
-                    <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{d.developer}</span>
-                    <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
-                      <div className="h-full rounded-full animate-grow" style={{ width: `${pct}%`, backgroundColor: color }} />
-                    </div>
-                    <span className="text-[11px] font-bold w-9 text-right tabular-nums" style={{ color }}>{d.aiCodeRatio}%</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </SectionCard>
   );
 }

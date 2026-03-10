@@ -77,7 +77,6 @@ export default function ChatPanel({ open, onClose, currentMonth }: Props) {
     "How did the team do this month?",
     "Who are the top performers?",
     "Compare squads this month",
-    "Who needs to improve AI adoption?",
     "Show me the bug breakdown",
     "On-call highlights this month",
   ];

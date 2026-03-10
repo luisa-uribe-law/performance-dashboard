@@ -323,38 +323,6 @@ function getBugEnvironment(issue: JiraIssue): "PROD" | "SBX" | "STG" {
   return "PROD"; // fallback
 }
 
-// ── AI Code Ratio (from Span API — hardcoded until token is renewed) ──
-
-const AI_RATIO: Record<string, Record<string, number>> = {
-  "2026-01": {
-    "Daniela Perea Tarapuez": 35.4,
-    "Nicolas Agustin Carolo": 18.8,
-    "Diego Alberto Leon Lopez": 35.0,
-  },
-  "2026-02": {
-    "Daniela Perea Tarapuez": 85.6,
-    "Nicolas Agustin Carolo": 69.1,
-    "Vivek Hasmukhbhai Rajpara": 66.9,
-    "Martin Ezequiel Sandroni": 64.4,
-    "Diego Alberto Leon Lopez": 56.3,
-    "Marcos Isaac Stupnicki": 56.4,
-    "Sudheer Kumar Puppala": 56.6,
-    "Daniel Betancurth": 51.5,
-    "Juan Quintana": 50.7,
-    "Juan David Canal Vera": 47.3,
-    "Neller Pellegrino Baquero": 47.0,
-    "Garvit Gupta": 40.6,
-    "Emmanuel Rocha": 39.1,
-    "Ever Daniel Rivera Inagan": 38.9,
-    "Daniel Andres Hernandez Oyola": 37.8,
-    "Andres Salazar Galeano": 15.9,
-  },
-};
-
-function getAiRatio(month: string, displayName: string): number {
-  return AI_RATIO[month]?.[displayName] ?? 0;
-}
-
 // ── Main sync function ──
 
 export interface SyncResult {
@@ -563,7 +531,6 @@ export async function syncMonth(month: string): Promise<SyncResult> {
       onTimeDeliveryPct: onTimePct,
       prodBugs: dd.prodBugs.length,
       sbxBugs: sbxCount,
-      aiCodeRatio: getAiRatio(month, entry.displayName),
       ticketsResolved: yshubCount,
       medianResolutionHrs: medianHrs,
       slaCompliancePct: slaPct,
@@ -634,10 +601,6 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     sbxBugs: totalSbxBugs,
     ticketsResolved: yshubTickets.length,
     slaCompliancePct: teamSlaTotal > 0 ? Math.round((teamSlaOk / teamSlaTotal) * 1000) / 10 : 0,
-    teamAiRatio: (() => {
-      const aiDevs = developerMetrics.filter(d => d.aiCodeRatio > 0);
-      return aiDevs.length > 0 ? Math.round(aiDevs.reduce((s, d) => s + d.aiCodeRatio, 0) / aiDevs.length * 10) / 10 : 0;
-    })(),
     medianResolutionDays: allHours.length > 0 ? Math.round(median(allHours) / 24 * 10) / 10 : 0,
     activeDevelopers,
   };

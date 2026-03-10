@@ -33,17 +33,6 @@ export function getBugFreeDevs(devs: DeveloperMonthly[]): string[] {
     .map(d => d.developer);
 }
 
-export function getAiAdoptionCategories(devs: DeveloperMonthly[]) {
-  // Exclude dedicated on-call for AI highlights
-  const integrationDevs = devs.filter(d => d.group !== "dedicated-oncall" && d.aiCodeRatio > 0);
-  const sorted = [...integrationDevs].sort((a, b) => b.aiCodeRatio - a.aiCodeRatio);
-  const topAdopter = sorted[0];
-  const belowThreshold = sorted.filter(d => d.aiCodeRatio < 40);
-  const risingStars = sorted.slice(2, 5);
-
-  return { topAdopter, risingStars, belowThreshold };
-}
-
 export function computeSpeedAwards(devs: DeveloperMonthly[]) {
   // Only integration devs (exclude dedicated on-call)
   const integrationDevs = devs.filter(d => d.group !== "dedicated-oncall");

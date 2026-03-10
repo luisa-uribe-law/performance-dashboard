@@ -14,7 +14,6 @@ export interface MonthlyTeamMetrics {
   sbxBugs: number;
   ticketsResolved: number;
   slaCompliancePct: number;
-  teamAiRatio: number;
   medianResolutionDays: number;
   activeDevelopers: number;
 }
@@ -55,8 +54,6 @@ export interface DeveloperMonthly {
   onTimeDeliveryPct: number;
   prodBugs: number;
   sbxBugs: number;
-  // AI adoption
-  aiCodeRatio: number;
   // On-call
   ticketsResolved: number;
   medianResolutionHrs: number;

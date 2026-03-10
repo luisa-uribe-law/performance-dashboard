@@ -95,7 +95,6 @@ export default function DevProfileModal({ developer, allMonths, onClose }: Props
               <StatWithDelta label="On-Time Delivery" value={latest.onTimeDeliveryPct} prev={prev?.onTimeDeliveryPct} suffix="%" color="var(--success)" />
               <StatWithDelta label="PROD Bugs" value={latest.prodBugs} prev={prev?.prodBugs} color={latest.prodBugs === 0 ? "var(--success)" : "var(--danger)"} invertDelta />
               <StatWithDelta label="SBX Bugs" value={latest.sbxBugs} prev={prev?.sbxBugs} color="var(--muted)" invertDelta />
-              <StatWithDelta label="AI Code Ratio" value={latest.aiCodeRatio} prev={prev?.aiCodeRatio} suffix="%" color="var(--accent)" />
             </div>
           </div>
 
@@ -112,13 +111,12 @@ export default function DevProfileModal({ developer, allMonths, onClose }: Props
               />
             </div>
             <div>
-              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Quality & AI</div>
+              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Quality</div>
               <TrendChart
                 data={allMonths}
                 xKey="month"
                 lines={[
                   { key: "onTimeDeliveryPct", color: "var(--success)", name: "OTD %" },
-                  { key: "aiCodeRatio", color: "var(--accent)", name: "AI %" },
                 ]}
                 yDomain={[0, 100]}
                 yFormatter={(v) => `${v}%`}

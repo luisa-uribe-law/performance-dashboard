@@ -1,5 +1,5 @@
 import { PerformanceData, DeveloperMonthly, MonthlyTeamMetrics } from "./types";
-import { computeSpeedAwards, computeOnCallHeroes, computeHelpingHand, getAiAdoptionCategories, getBugFreeDevs } from "./scoring";
+import { computeSpeedAwards, computeOnCallHeroes, computeHelpingHand, getBugFreeDevs } from "./scoring";
 
 // ── Rule-based chat engine ──
 // No tables — uses bullet/card format optimized for narrow chat panel.
@@ -55,11 +55,6 @@ function parseIntent(input: string, ctx: QueryContext): ParsedIntent {
     return { type: "bugs_detail", params: { month: ctx.currentMonth } };
   }
 
-  // AI adoption
-  if (q.includes("ai") && (q.includes("adopt") || q.includes("ratio") || q.includes("code"))) {
-    return { type: "ai_adoption", params: { month: ctx.currentMonth } };
-  }
-
   // Rankings / top performers
   if (q.includes("top") || q.includes("best") || q.includes("highest") || q.includes("leader") || q.includes("rank")) {
     if (q.includes("ticket") || q.includes("on-call") || q.includes("oncall") || q.includes("support")) {
@@ -67,9 +62,6 @@ function parseIntent(input: string, ctx: QueryContext): ParsedIntent {
     }
     if (q.includes("bug")) {
       return { type: "rankings", params: { metric: "prodBugs", month: ctx.currentMonth } };
-    }
-    if (q.includes("ai")) {
-      return { type: "rankings", params: { metric: "aiCodeRatio", month: ctx.currentMonth } };
     }
     if (q.includes("sla")) {
       return { type: "rankings", params: { metric: "slaCompliancePct", month: ctx.currentMonth } };
@@ -79,9 +71,6 @@ function parseIntent(input: string, ctx: QueryContext): ParsedIntent {
 
   // Bottom / worst / improve
   if (q.includes("worst") || q.includes("lowest") || q.includes("improve") || q.includes("struggling") || q.includes("needs attention") || q.includes("behind")) {
-    if (q.includes("ai")) {
-      return { type: "rankings_bottom", params: { metric: "aiCodeRatio", month: ctx.currentMonth } };
-    }
     if (q.includes("sla")) {
       return { type: "rankings_bottom", params: { metric: "slaCompliancePct", month: ctx.currentMonth } };
     }
@@ -134,8 +123,6 @@ function generateResponse(intent: ParsedIntent, ctx: QueryContext): string {
       return bugsDetailResponse(data, intent.params.month || currentMonth);
     case "bug_free":
       return bugFreeResponse(data, intent.params.month || currentMonth);
-    case "ai_adoption":
-      return aiAdoptionResponse(data, intent.params.month || currentMonth);
     case "oncall_highlights":
       return oncallHighlightsResponse(data, intent.params.month || currentMonth);
     case "awards":
@@ -168,7 +155,6 @@ function teamSummaryResponse(data: PerformanceData, month: string): string {
     kv("SBX Bugs", team.sbxBugs),
     kv("On-Call Tickets", team.ticketsResolved),
     kv("SLA Compliance", team.slaCompliancePct, "%"),
-    kv("Team AI Ratio", team.teamAiRatio, "%"),
     kv("Active Devs", team.activeDevelopers),
   ];
 
@@ -182,7 +168,6 @@ function teamSummaryResponse(data: PerformanceData, month: string): string {
       lines.push(deltaLine("OTD", team.onTimeDeliveryPct, prev.onTimeDeliveryPct, "%"));
       lines.push(deltaLine("PROD Bugs", team.prodBugs, prev.prodBugs, "", true));
       lines.push(deltaLine("SLA", team.slaCompliancePct, prev.slaCompliancePct, "%"));
-      lines.push(deltaLine("AI Ratio", team.teamAiRatio, prev.teamAiRatio, "%"));
     }
   }
 
@@ -213,7 +198,6 @@ function developerCard(d: DeveloperMonthly): string {
       kv("SLA Compliance", d.slaCompliancePct, "%"),
       kv("Median Resolution", d.medianResolutionHrs > 0 ? `${(d.medianResolutionHrs / 24).toFixed(1)}d (${Math.round(d.medianResolutionHrs)}h)` : "N/A"),
       kv("Weighted Tasks", d.weightedTasks),
-      kv("AI Code Ratio", d.aiCodeRatio, "%"),
     );
   } else {
     lines.push(
@@ -222,7 +206,6 @@ function developerCard(d: DeveloperMonthly): string {
       kv("On-Time Delivery", d.onTimeDeliveryPct, "%"),
       kv("PROD Bugs", d.prodBugs),
       kv("SBX Bugs", d.sbxBugs),
-      kv("AI Code Ratio", d.aiCodeRatio, "%"),
     );
     if (d.ticketsResolved > 0) {
       lines.push(
@@ -267,7 +250,6 @@ function compareMonthsResponse(data: PerformanceData, monthA: string, monthB: st
     { label: "SBX Bugs", key: "sbxBugs", lowerBetter: true },
     { label: "Tickets Resolved", key: "ticketsResolved" },
     { label: "SLA", key: "slaCompliancePct", suffix: "%" },
-    { label: "AI Ratio", key: "teamAiRatio", suffix: "%" },
   ];
 
   for (const m of metrics) {
@@ -306,14 +288,13 @@ function squadBreakdownResponse(data: PerformanceData, month: string): string {
     const bugs = members.reduce((s, d) => s + d.prodBugs + d.sbxBugs, 0);
     const tickets = sumField(members, "ticketsResolved");
     const sla = avgField(members, "slaCompliancePct");
-    const ai = avgField(members, "aiCodeRatio");
     const top = [...members].sort((a, b) => b.weightedTasks - a.weightedTasks)[0];
 
     lines.push(
       `**${fmtSquad(squad)}** (${n} devs)`,
       `Tasks: ${tasks} · WT: ${wt} · OTD: ${otd}%`,
       `Bugs: ${bugs} · Tickets: ${tickets} · SLA: ${sla}%`,
-      `AI: ${ai}% · Top: ${top.developer} (WT ${top.weightedTasks})`,
+      `Top: ${top.developer} (WT ${top.weightedTasks})`,
       "",
     );
   }
@@ -399,33 +380,6 @@ function bugFreeResponse(data: PerformanceData, month: string): string {
   ].join("\n");
 }
 
-function aiAdoptionResponse(data: PerformanceData, month: string): string {
-  const devs = data.developerMetrics.filter(d => d.month === month);
-  const { topAdopter, belowThreshold } = getAiAdoptionCategories(devs);
-  const sorted = [...devs].filter(d => d.group !== "dedicated-oncall").sort((a, b) => b.aiCodeRatio - a.aiCodeRatio);
-  const teamAvg = sorted.length > 0 ? +(sorted.reduce((s, d) => s + d.aiCodeRatio, 0) / sorted.length).toFixed(1) : 0;
-
-  const lines = [
-    `### AI Adoption — ${fmtMonth(month)}`,
-    "",
-  ];
-
-  if (topAdopter) lines.push(`**Top Adopter:** ${topAdopter.developer} at **${topAdopter.aiCodeRatio}%**`);
-  lines.push(`**Team Average:** ${teamAvg}%`, "");
-
-  for (const d of sorted) {
-    const bar = d.aiCodeRatio >= 40 ? "+" : "-";
-    const flag = d.aiCodeRatio < 40 ? " *(below 40%)*" : "";
-    lines.push(`${bar} **${d.developer}** — ${d.aiCodeRatio}%${flag}`);
-  }
-
-  if (belowThreshold.length > 0) {
-    lines.push("", `**${belowThreshold.length} below 40% target:** ${belowThreshold.map(d => d.developer).join(", ")}`);
-  }
-
-  return lines.join("\n");
-}
-
 function oncallHighlightsResponse(data: PerformanceData, month: string): string {
   const devs = data.developerMetrics.filter(d => d.month === month);
   const heroes = computeOnCallHeroes(devs);
@@ -471,14 +425,12 @@ function awardsResponse(data: PerformanceData, month: string): string {
   const speed = computeSpeedAwards(devs);
   const heroes = computeOnCallHeroes(devs);
   const helping = computeHelpingHand(devs);
-  const { topAdopter } = getAiAdoptionCategories(devs);
   const bugFree = getBugFreeDevs(devs);
 
   const lines = [`### Awards — ${fmtMonth(month)}`, "", "**Integration:**"];
 
   if (speed.highestOutput) lines.push(`- Highest Output: **${speed.highestOutput.developer}** — WT ${speed.highestOutput.weightedTasks} from ${speed.highestOutput.tasksCompleted} tasks`);
   if (speed.mostTimely) lines.push(`- Most Timely: **${speed.mostTimely.developer}** — ${speed.mostTimely.onTimeDeliveryPct}% OTD`);
-  if (topAdopter) lines.push(`- Top AI Adopter: **${topAdopter.developer}** — ${topAdopter.aiCodeRatio}%`);
   if (bugFree.length > 0) lines.push(`- Zero-Bug: ${bugFree.slice(0, 5).map(n => `**${n}**`).join(", ")}${bugFree.length > 5 ? ` +${bugFree.length - 5} more` : ""}`);
 
   lines.push("", "**On-Call:**");
@@ -526,7 +478,6 @@ function unknownResponse(): string {
     "- **\"Compare squads\"** — squad breakdown",
     "- **\"Top performers\"** — rankings",
     "- **\"Bug breakdown\"** — bug details",
-    "- **\"AI adoption\"** — AI code ratios",
     "- **\"On-call highlights\"** — support heroes",
     "- **\"SLA detail\"** — SLA by priority/dev",
     "- **\"Who needs to improve?\"** — bottom list",
@@ -605,7 +556,6 @@ function metricLabel(metric: keyof DeveloperMonthly): string {
     onTimeDeliveryPct: "OTD %",
     prodBugs: "PROD Bugs",
     sbxBugs: "SBX Bugs",
-    aiCodeRatio: "AI %",
     ticketsResolved: "Tickets",
     slaCompliancePct: "SLA %",
     medianResolutionHrs: "Resolution",
@@ -614,7 +564,7 @@ function metricLabel(metric: keyof DeveloperMonthly): string {
 }
 
 function fmtMetricValue(metric: keyof DeveloperMonthly, val: number): string {
-  if (String(metric).includes("Pct") || metric === "aiCodeRatio") return `${val}%`;
+  if (String(metric).includes("Pct")) return `${val}%`;
   if (metric === "medianResolutionHrs") return val > 0 ? `${(val / 24).toFixed(1)}d` : "-";
   return String(val);
 }

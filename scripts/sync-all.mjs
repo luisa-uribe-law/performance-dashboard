@@ -59,12 +59,19 @@ for (const month of months) {
       continue;
     }
     const data = await resp.json();
-    // The /api/sync route already writes to data/sync-YYYY-MM.json,
-    // but let's also verify/write here as a safety net
-    writeFileSync(`${dataDir}/sync-${month}.json`, JSON.stringify(data));
     const devCount = data.developerMetrics?.length || 0;
+    const tasks = data.teamMetrics?.tasksCompleted || 0;
     const tickets = data.teamMetrics?.ticketsResolved || 0;
-    console.log(`  ✓ ${month}: ${devCount} developers, ${tickets} tickets`);
+
+    // Safety check: don't overwrite existing data with empty results
+    if (tasks === 0 && tickets === 0 && existsSync(`${dataDir}/sync-${month}.json`)) {
+      console.warn(`  ⚠ ${month}: sync returned 0 tasks and 0 tickets — keeping existing file`);
+      hasErrors = true;
+      continue;
+    }
+
+    writeFileSync(`${dataDir}/sync-${month}.json`, JSON.stringify(data));
+    console.log(`  ✓ ${month}: ${devCount} developers, ${tasks} tasks, ${tickets} tickets`);
   } catch (err) {
     console.error(`  ERROR ${month}: ${err.message}`);
     hasErrors = true;

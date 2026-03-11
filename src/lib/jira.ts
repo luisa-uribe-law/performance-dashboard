@@ -477,21 +477,27 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     const slaPct = slaTotal > 0 ? Math.round((slaOk / slaTotal) * 1000) / 10 : 0;
     const medianHrs = Math.round(median(resolutionHours) * 10) / 10;
 
-    const integrations: IntegrationTicket[] = dd.demTasks.map(t => ({
-      key: getIssueKey(t),
-      summary: getFieldStr(t, "summary"),
-      weightedTasks: determineWeight(t),
-      onTime: wasOnTime(t) ?? false,
-    }));
+    const integrations: IntegrationTicket[] = dd.demTasks.map(t => {
+      const cd = getFieldStr(t, "statuscategorychangedate") || getFieldStr(t, "resolutiondate");
+      return {
+        key: getIssueKey(t),
+        summary: getFieldStr(t, "summary"),
+        weightedTasks: determineWeight(t),
+        onTime: wasOnTime(t) ?? false,
+        closedDate: cd ? parseJiraDate(cd).toISOString().slice(0, 10) : null,
+      };
+    });
 
     const onCallTickets: OnCallTicket[] = dd.yshubTickets.map(t => {
       const sla = extractSla(t);
+      const cd = getFieldStr(t, "statuscategorychangedate") || getFieldStr(t, "resolutiondate");
       return {
         key: getIssueKey(t),
         summary: getFieldStr(t, "summary"),
         priority: (getField(t, "priority") as { name?: string })?.name || "Unknown",
         slaBreached: sla ? sla.breached : false,
         resolutionHrs: sla ? Math.round(sla.elapsedMs / (1000 * 60 * 60) * 10) / 10 : null,
+        closedDate: cd ? parseJiraDate(cd).toISOString().slice(0, 10) : null,
       };
     });
 

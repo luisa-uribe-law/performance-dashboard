@@ -23,6 +23,7 @@ export interface IntegrationTicket {
   summary: string;
   weightedTasks: number;
   onTime: boolean;
+  closedDate: string | null; // ISO date e.g. "2026-02-15"
 }
 
 export interface BugTicket {
@@ -40,6 +41,7 @@ export interface OnCallTicket {
   priority: string;
   slaBreached: boolean;
   resolutionHrs: number | null;
+  closedDate: string | null; // ISO date e.g. "2026-02-15"
 }
 
 export interface DeveloperMonthly {

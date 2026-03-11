@@ -264,6 +264,7 @@ export default function OnCallPanel({ teamData, priorityData, selectedMonth, dev
                       {t.developer} · {t.priority}
                       {t.resolutionHrs != null ? ` · ${t.resolutionHrs}h` : ""}
                       {t.slaBreached ? " · SLA breached" : ""}
+                      {t.closedDate ? ` · ${t.closedDate}` : ""}
                     </div>
                   </div>
                 </div>

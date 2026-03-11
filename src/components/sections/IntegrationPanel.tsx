@@ -209,7 +209,7 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
                   </a>
                   <div className="flex-1 min-w-0">
                     <div className="text-[11px] text-[var(--foreground)] truncate">{t.summary}</div>
-                    <div className="text-[10px] text-[var(--muted)]">{t.developer} · WT {t.weightedTasks}{t.onTime ? " · On-time" : ""}</div>
+                    <div className="text-[10px] text-[var(--muted)]">{t.developer} · WT {t.weightedTasks}{t.onTime ? " · On-time" : ""}{t.closedDate ? ` · ${t.closedDate}` : ""}</div>
                   </div>
                 </div>
               ))}

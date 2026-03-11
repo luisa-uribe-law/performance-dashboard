@@ -48,8 +48,34 @@ if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
 let hasErrors = false;
 
-// Debug: check env vars are available
-console.log(`ENV check: JIRA_BASE_URL=${process.env.JIRA_BASE_URL ? 'set' : 'MISSING'}, JIRA_EMAIL=${process.env.JIRA_EMAIL ? 'set' : 'MISSING'}, JIRA_API_TOKEN=${process.env.JIRA_API_TOKEN ? 'set (' + process.env.JIRA_API_TOKEN.length + ' chars)' : 'MISSING'}`);
+// Debug: verify Jira credentials work before syncing
+const jiraAuth = "Basic " + Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString("base64");
+try {
+  const meResp = await fetch(`${process.env.JIRA_BASE_URL}/rest/api/3/myself`, {
+    headers: { Authorization: jiraAuth, "Content-Type": "application/json" }
+  });
+  if (meResp.ok) {
+    const me = await meResp.json();
+    console.log(`Jira auth OK: ${me.displayName} (${me.emailAddress})`);
+  } else {
+    console.error(`Jira auth FAILED: ${meResp.status} ${(await meResp.text()).slice(0, 200)}`);
+    process.exit(1);
+  }
+  // Test a simple query
+  const testJql = `project = DEM AND issuetype = Epic AND status in (Done, "Implementation Complete") AND created >= "2026-01-01"`;
+  const testResp = await fetch(`${process.env.JIRA_BASE_URL}/rest/api/3/search/jql?${new URLSearchParams({ jql: testJql, maxResults: "1", fields: "summary" })}`, {
+    headers: { Authorization: jiraAuth, "Content-Type": "application/json" }
+  });
+  if (testResp.ok) {
+    const testData = await testResp.json();
+    console.log(`Jira test query: ${testData.issues?.length ?? 0} issues found (expected >= 0)`);
+  } else {
+    console.error(`Jira test query FAILED: ${testResp.status} ${(await testResp.text()).slice(0, 200)}`);
+  }
+} catch (err) {
+  console.error(`Jira connectivity error: ${err.message}`);
+  process.exit(1);
+}
 
 for (const month of months) {
   try {

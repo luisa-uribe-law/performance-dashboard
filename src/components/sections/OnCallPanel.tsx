@@ -16,10 +16,13 @@ interface Props {
   isPartialMonth?: boolean;
 }
 
+const JIRA_BROWSE = "https://yunopayments.atlassian.net/browse";
+
 const tabs = [
   { id: "overview", label: "Tickets" },
   { id: "sla", label: "SLA" },
   { id: "resolution", label: "Resolution" },
+  { id: "list", label: "Ticket List" },
 ] as const;
 
 function MiniStat({ label, value, color }: { label: string; value: string; color: string }) {
@@ -236,6 +239,43 @@ export default function OnCallPanel({ teamData, priorityData, selectedMonth, dev
           )}
         </div>
       )}
+      {/* Ticket List tab */}
+      {tab === "list" && (() => {
+        const allTickets = developers.flatMap(d =>
+          d.onCallTickets.map(t => ({ ...t, developer: d.developer }))
+        ).sort((a, b) => a.key.localeCompare(b.key));
+        return (
+          <div className="space-y-2">
+            <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider">{allTickets.length} tickets resolved</div>
+            <div className="max-h-[400px] overflow-y-auto pr-1 space-y-0">
+              {allTickets.map(t => (
+                <div key={t.key} className="flex items-start gap-2 py-1.5 border-b border-[var(--border)] last:border-0">
+                  <a
+                    href={`${JIRA_BROWSE}/${t.key}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-mono font-medium text-[var(--oncall)] hover:underline shrink-0 w-24"
+                  >
+                    {t.key}
+                  </a>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] text-[var(--foreground)] truncate">{t.summary}</div>
+                    <div className="text-[10px] text-[var(--muted)]">
+                      {t.developer} · {t.priority}
+                      {t.resolutionHrs != null ? ` · ${t.resolutionHrs}h` : ""}
+                      {t.slaBreached ? " · SLA breached" : ""}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {allTickets.length === 0 && (
+                <div className="text-[11px] text-[var(--muted)] text-center py-4">No tickets this month</div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
     </SectionCard>
   );
 }

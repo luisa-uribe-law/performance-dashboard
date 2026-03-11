@@ -14,10 +14,13 @@ interface Props {
   isPartialMonth?: boolean;
 }
 
+const JIRA_BROWSE = "https://yunopayments.atlassian.net/browse";
+
 const tabs = [
   { id: "tasks", label: "Tasks" },
   { id: "otd", label: "On-Time" },
   { id: "bugs", label: "Bugs" },
+  { id: "list", label: "Task List" },
 ] as const;
 
 function MiniStat({ label, value, color }: { label: string; value: string; color: string }) {
@@ -184,6 +187,39 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
           )}
         </div>
       )}
+
+      {/* Task List tab */}
+      {tab === "list" && (() => {
+        const allTasks = developers.flatMap(d =>
+          d.integrations.map(t => ({ ...t, developer: d.developer }))
+        ).sort((a, b) => a.key.localeCompare(b.key));
+        return (
+          <div className="space-y-2">
+            <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider">{allTasks.length} tasks completed</div>
+            <div className="max-h-[400px] overflow-y-auto pr-1 space-y-0">
+              {allTasks.map(t => (
+                <div key={t.key} className="flex items-start gap-2 py-1.5 border-b border-[var(--border)] last:border-0">
+                  <a
+                    href={`${JIRA_BROWSE}/${t.key}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-mono font-medium text-[var(--accent)] hover:underline shrink-0 w-20"
+                  >
+                    {t.key}
+                  </a>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] text-[var(--foreground)] truncate">{t.summary}</div>
+                    <div className="text-[10px] text-[var(--muted)]">{t.developer} · WT {t.weightedTasks}{t.onTime ? " · On-time" : ""}</div>
+                  </div>
+                </div>
+              ))}
+              {allTasks.length === 0 && (
+                <div className="text-[11px] text-[var(--muted)] text-center py-4">No tasks this month</div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
     </SectionCard>
   );

@@ -1,11 +1,13 @@
 import { DeveloperMonthly, IntegrationTicket, BugTicket, OnCallTicket, Squad, MonthlyTeamMetrics, OnCallPriorityMetrics, PriorityLabel } from "./types";
 
-// ── Config ──
-const JIRA_BASE_URL = process.env.JIRA_BASE_URL || "https://yunopayments.atlassian.net";
-const JIRA_EMAIL = process.env.JIRA_EMAIL || "";
-const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN || "";
-
-const AUTH_HEADER = "Basic " + Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString("base64");
+// ── Config (read lazily so env vars are available at request time, not build time) ──
+function getJiraConfig() {
+  const baseUrl = process.env.JIRA_BASE_URL || "https://yunopayments.atlassian.net";
+  const email = process.env.JIRA_EMAIL || "";
+  const token = process.env.JIRA_API_TOKEN || "";
+  const auth = "Basic " + Buffer.from(`${email}:${token}`).toString("base64");
+  return { baseUrl, auth };
+}
 
 // ── Developer roster (loaded from JSON file, server-only) ──
 interface RosterEntry {
@@ -49,6 +51,7 @@ interface JiraIssue {
 }
 
 async function jiraSearchAll(jql: string, fields: string): Promise<JiraIssue[]> {
+  const { baseUrl, auth } = getJiraConfig();
   const all: JiraIssue[] = [];
   let nextToken: string | undefined;
 
@@ -56,9 +59,9 @@ async function jiraSearchAll(jql: string, fields: string): Promise<JiraIssue[]> 
     const params = new URLSearchParams({ jql, maxResults: "100", fields });
     if (nextToken) params.set("nextPageToken", nextToken);
 
-    const url = `${JIRA_BASE_URL}/rest/api/3/search/jql?${params}`;
+    const url = `${baseUrl}/rest/api/3/search/jql?${params}`;
     const resp = await fetch(url, {
-      headers: { Authorization: AUTH_HEADER, "Content-Type": "application/json" },
+      headers: { Authorization: auth, "Content-Type": "application/json" },
     });
 
     if (!resp.ok) {

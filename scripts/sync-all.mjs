@@ -49,6 +49,9 @@ if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 let hasErrors = false;
 
 // Debug: verify Jira credentials work before syncing
+console.log(`Debug: JIRA_EMAIL='${process.env.JIRA_EMAIL}' (${(process.env.JIRA_EMAIL || '').length} chars)`);
+console.log(`Debug: JIRA_API_TOKEN length=${(process.env.JIRA_API_TOKEN || '').length}, first4='${(process.env.JIRA_API_TOKEN || '').slice(0,4)}', last4='${(process.env.JIRA_API_TOKEN || '').slice(-4)}'`);
+console.log(`Debug: JIRA_BASE_URL='${process.env.JIRA_BASE_URL}'`);
 const jiraAuth = "Basic " + Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString("base64");
 try {
   const meResp = await fetch(`${process.env.JIRA_BASE_URL}/rest/api/3/myself`, {

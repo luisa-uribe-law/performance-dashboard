@@ -48,6 +48,9 @@ if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
 let hasErrors = false;
 
+// Debug: check env vars are available
+console.log(`ENV check: JIRA_BASE_URL=${process.env.JIRA_BASE_URL ? 'set' : 'MISSING'}, JIRA_EMAIL=${process.env.JIRA_EMAIL ? 'set' : 'MISSING'}, JIRA_API_TOKEN=${process.env.JIRA_API_TOKEN ? 'set (' + process.env.JIRA_API_TOKEN.length + ' chars)' : 'MISSING'}`);
+
 for (const month of months) {
   try {
     console.log(`  Syncing ${month}...`);
@@ -66,6 +69,8 @@ for (const month of months) {
     // Safety check: don't overwrite existing data with empty results
     if (tasks === 0 && tickets === 0 && existsSync(`${dataDir}/sync-${month}.json`)) {
       console.warn(`  ⚠ ${month}: sync returned 0 tasks and 0 tickets — keeping existing file`);
+      console.warn(`    Debug: ${JSON.stringify(data.debug || {})}`);
+      console.warn(`    ActiveDevs: ${data.teamMetrics?.activeDevelopers}, DevMetrics count: ${data.developerMetrics?.length}`);
       hasErrors = true;
       continue;
     }

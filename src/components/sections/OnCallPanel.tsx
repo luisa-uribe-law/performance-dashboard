@@ -243,7 +243,7 @@ export default function OnCallPanel({ teamData, priorityData, selectedMonth, dev
       {tab === "list" && (() => {
         const allTickets = developers.flatMap(d =>
           d.onCallTickets.map(t => ({ ...t, developer: d.developer }))
-        ).sort((a, b) => a.key.localeCompare(b.key));
+        ).sort((a, b) => (b.closedDate || "").localeCompare(a.closedDate || ""));
         return (
           <div className="space-y-2">
             <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider">{allTickets.length} tickets resolved</div>

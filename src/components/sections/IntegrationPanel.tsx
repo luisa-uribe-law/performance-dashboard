@@ -192,7 +192,7 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
       {tab === "list" && (() => {
         const allTasks = developers.flatMap(d =>
           d.integrations.map(t => ({ ...t, developer: d.developer }))
-        ).sort((a, b) => a.key.localeCompare(b.key));
+        ).sort((a, b) => (b.closedDate || "").localeCompare(a.closedDate || ""));
         return (
           <div className="space-y-2">
             <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider">{allTasks.length} tasks completed</div>

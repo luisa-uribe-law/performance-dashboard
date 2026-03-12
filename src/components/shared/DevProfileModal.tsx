@@ -163,11 +163,11 @@ export default function DevProfileModal({ developer, allMonths, onClose }: Props
             </div>
           )}
 
-          {/* Bugs list — DEM + YSHUB bugs where developer is responsible */}
-          {latest.bugs.length > 0 && (
+          {/* In-Sprint Bugs (DEM board) */}
+          {latest.bugs.filter(b => b.source === "DEM").length > 0 && (
             <div>
               <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
-                Bugs ({latest.bugs.length})
+                In-Sprint Bugs — DEM ({latest.bugs.filter(b => b.source === "DEM").length})
               </div>
               <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
                 <table className="w-full text-[12px]">
@@ -175,34 +175,57 @@ export default function DevProfileModal({ developer, allMonths, onClose }: Props
                     <tr className="bg-[var(--surface)]">
                       <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
                       <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
-                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Source</th>
                       <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {latest.bugs.map((b, i) => (
+                    {latest.bugs.filter(b => b.source === "DEM").map((b, i) => (
+                      <tr key={i} className="border-t border-[var(--border)]">
+                        <td className="py-1.5 px-3 font-mono">
+                          <a href={`${JIRA_BROWSE}/${b.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] hover:underline">{b.key}</a>
+                        </td>
+                        <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[250px]">{b.summary}</td>
+                        <td className="py-1.5 px-3 text-center">
+                          <span className={`text-[10px] font-bold ${b.env === "PROD" ? "text-[var(--danger)]" : "text-[var(--warning)]"}`}>{b.env}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Production Bugs (YSHUB board) */}
+          {latest.bugs.filter(b => b.source === "YSHUB").length > 0 && (
+            <div>
+              <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
+                Production Bugs — YSHUB ({latest.bugs.filter(b => b.source === "YSHUB").length})
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                <table className="w-full text-[12px]">
+                  <thead>
+                    <tr className="bg-[var(--surface)]">
+                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
+                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
+                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Provider</th>
+                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {latest.bugs.filter(b => b.source === "YSHUB").map((b, i) => (
                       <tr key={i} className="border-t border-[var(--border)]">
                         <td className="py-1.5 px-3 font-mono">
                           <a href={`${JIRA_BROWSE}/${b.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--danger)] hover:underline">{b.key}</a>
                         </td>
                         <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{b.summary}</td>
-                        <td className="py-1.5 px-3 text-center">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                            b.source === "YSHUB"
-                              ? "bg-[var(--oncall)]/15 text-[var(--oncall)]"
-                              : "bg-[var(--accent)]/15 text-[var(--accent)]"
-                          }`}>
-                            {b.source}
-                          </span>
-                        </td>
+                        <td className="py-1.5 px-3 text-center text-[10px] text-[var(--foreground)]">{b.provider}</td>
                         <td className="py-1.5 px-3 text-center">
                           <span className={`text-[10px] font-bold ${
                             b.env === "PROD" ? "text-[var(--danger)]" :
                             b.env === "STG" ? "text-[var(--accent)]" :
                             "text-[var(--warning)]"
-                          }`}>
-                            {b.env}
-                          </span>
+                          }`}>{b.env}</span>
                         </td>
                       </tr>
                     ))}

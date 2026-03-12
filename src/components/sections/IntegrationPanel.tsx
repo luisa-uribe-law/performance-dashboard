@@ -5,6 +5,7 @@ import { DeveloperMonthly, MonthlyTeamMetrics } from "@/lib/types";
 import { formatMonth } from "@/lib/format";
 import TrendChart from "../shared/TrendChart";
 import SectionCard from "../shared/SectionCard";
+import * as XLSX from "xlsx";
 
 interface Props {
   teamData: MonthlyTeamMetrics[];
@@ -193,9 +194,32 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
         const allTasks = developers.flatMap(d =>
           d.integrations.map(t => ({ ...t, developer: d.developer }))
         ).sort((a, b) => (b.closedDate || "").localeCompare(a.closedDate || ""));
+
+        function downloadExcel() {
+          const rows = allTasks.map(t => ({
+            "Ticket ID": t.key,
+            "Link to Jira": `${JIRA_BROWSE}/${t.key}`,
+            "Summary": t.summary,
+            "Assignee": t.developer,
+            "Date Completed": t.closedDate || "",
+            "Weighted Tasks": t.weightedTasks,
+            "On-Time": t.onTime ? "Yes" : "No",
+          }));
+          const ws = XLSX.utils.json_to_sheet(rows);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Integration Tasks");
+          XLSX.writeFile(wb, `integration-tasks-${selectedMonth}.xlsx`);
+        }
+
         return (
           <div className="space-y-2">
-            <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider">{allTasks.length} tasks completed</div>
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider">{allTasks.length} tasks completed</div>
+              <button onClick={downloadExcel} className="text-[10px] font-medium text-[var(--accent)] hover:underline flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Export Excel
+              </button>
+            </div>
             <div className="max-h-[400px] overflow-y-auto pr-1 space-y-0">
               {allTasks.map(t => (
                 <div key={t.key} className="flex items-start gap-2 py-1.5 border-b border-[var(--border)] last:border-0">

@@ -135,6 +135,11 @@ export default function Dashboard() {
     return data.onCallPriority.filter(m => m.month <= selectedMonth);
   }, [data, selectedMonth]);
 
+  const bugSlaForMonth = useMemo(() => {
+    if (!data) return undefined;
+    return data.bugSla.find(m => m.month === selectedMonth);
+  }, [data, selectedMonth]);
+
   // Aggregated team KPIs for multi-month
   const currentTeam = useMemo(() => {
     if (!data) return undefined;
@@ -258,18 +263,8 @@ export default function Dashboard() {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <KpiCard label="Tickets Resolved" subtitle="Total support tickets closed" value={currentTeam.ticketsResolved} prevValue={prevTeam?.ticketsResolved} color="var(--oncall)" deltaLabel=" tickets" />
-                    <KpiCard label="SLA Compliance" subtitle="% of tickets resolved within SLA target" value={currentTeam.slaCompliancePct} suffix="%" prevValue={prevTeam?.slaCompliancePct} color="var(--oncall)" deltaLabel="pp" />
-                    <KpiCard label="Avg. Resolution Time" subtitle="Median time to close a ticket" value={currentTeam.medianResolutionDays} suffix="d" prevValue={prevTeam?.medianResolutionDays} color="var(--oncall)" invertDelta deltaLabel="d" />
-                    {prevTeam && (
-                      <KpiCard
-                        label="Throughput Efficiency"
-                        subtitle="Tickets per on-call developer"
-                        value={Math.round((currentTeam.ticketsResolved / currentTeam.activeDevelopers) * 10) / 10}
-                        prevValue={Math.round((prevTeam.ticketsResolved / prevTeam.activeDevelopers) * 10) / 10}
-                        color="var(--oncall)"
-                        deltaLabel="/dev"
-                      />
-                    )}
+                    <KpiCard label="SLA Compliance" subtitle="% resolved within SLA (done = Deployment in Queue)" value={currentTeam.slaCompliancePct} suffix="%" prevValue={prevTeam?.slaCompliancePct} color="var(--oncall)" deltaLabel="pp" />
+                    <KpiCard label="Avg. Resolution Time" subtitle="Median time to Deployment in Queue" value={currentTeam.medianResolutionDays} suffix="d" prevValue={prevTeam?.medianResolutionDays} color="var(--oncall)" invertDelta deltaLabel="d" />
                   </div>
                 </div>
               </div>
@@ -287,6 +282,7 @@ export default function Dashboard() {
               <OnCallPanel
                 teamData={teamDataUpToSelected}
                 priorityData={priorityDataUpToSelected}
+                bugSla={bugSlaForMonth}
                 developers={aggregatedDevs}
                 selectedMonth={selectedMonth}
                 onDevClick={setSelectedDev}

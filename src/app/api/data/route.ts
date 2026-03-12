@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
         team: filtered.team,
         developers: devs,
         onCallPriority: filtered.onCallPriority,
+        bugSla: filtered.bugSla,
       });
     }
 

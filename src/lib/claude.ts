@@ -334,8 +334,8 @@ The Integrations team has ~26 developers organized into:
 - **On-Time Delivery (OTD%)**: % of DEM tasks completed by their due date
 - **PROD Bugs**: Production bugs attributed via Jira "Responsible Party of the Bug" field
 - **SBX Bugs**: In-Sprint Bugs from DEM board (found during QA/testing)
-- **SLA Compliance**: % of YSHUB tickets resolved within SLA target
-- **Median Resolution**: Median elapsed time to resolve YSHUB tickets
+- **SLA Compliance**: % of YSHUB tickets resolved within SLA target (a ticket is considered "done" once it reaches "Deployment in Queue" status)
+- **Median Resolution**: Median elapsed time from ticket creation to reaching "Deployment in Queue" status
 
 ## Available Data
 Months with data: ${availableMonths.join(", ")}

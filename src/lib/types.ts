@@ -75,6 +75,22 @@ export interface OnCallPriorityMetrics {
   slaCompliancePct: number;
 }
 
+export interface BugSlaPriorityMetrics {
+  month: string;
+  priority: PriorityLabel;
+  count: number;
+  slaCompliancePct: number;
+  medianResolutionHrs: number;
+}
+
+export interface BugSlaMetrics {
+  month: string;
+  totalBugs: number;
+  overallSlaPct: number;
+  medianResolutionHrs: number;
+  byPriority: BugSlaPriorityMetrics[];
+}
+
 export interface AwardCard {
   title: string;
   subtitle: string;
@@ -87,6 +103,7 @@ export interface PerformanceData {
   teamMetrics: MonthlyTeamMetrics[];
   developerMetrics: DeveloperMonthly[];
   onCallPriority: OnCallPriorityMetrics[];
+  bugSla: BugSlaMetrics[];
   developers: Developer[];
   yshubBugs: BugTicket[];
 }

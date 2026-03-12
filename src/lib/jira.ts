@@ -1,4 +1,4 @@
-import { DeveloperMonthly, IntegrationTicket, BugTicket, OnCallTicket, Squad, MonthlyTeamMetrics, OnCallPriorityMetrics, PriorityLabel } from "./types";
+import { DeveloperMonthly, IntegrationTicket, BugTicket, OnCallTicket, Squad, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics, BugSlaPriorityMetrics, PriorityLabel } from "./types";
 
 // ── Config (read lazily so env vars are available at request time, not build time) ──
 function getJiraConfig() {
@@ -152,9 +152,28 @@ async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIs
 }
 
 async function fetchYshubTickets(startDate: string, endDate: string): Promise<JiraIssue[]> {
+  // Fetch tickets that reached Done/Resolved/Closed/Deployment in Queue (excludes Canceled) — used for developer-level metrics
+  // "Deployment in Queue" is the definition of done for SLA and resolution time purposes
   return jiraSearchAll(
-    `project = YSHUB AND component = Integration AND status changed to (Done, Resolved, Closed) DURING ("${startDate}", "${endDate}")`,
-    "summary,status,assignee,priority,created,resolutiondate,statuscategorychangedate,customfield_10074,customfield_10229,customfield_10196"
+    `project = YSHUB AND component = Integration AND status changed to (Done, Resolved, Closed, "Deployment in Queue") DURING ("${startDate}", "${endDate}")`,
+    "summary,status,assignee,priority,created,resolutiondate,statuscategorychangedate,customfield_10074,customfield_10229,customfield_10196,issuetype"
+  );
+}
+
+async function fetchYshubAllClosed(startDate: string, endDate: string): Promise<JiraIssue[]> {
+  // Fetch ALL tickets closed during the period (including Canceled and Bug types) — used for team-level totals
+  // "Deployment in Queue" is the definition of done for SLA and resolution time purposes
+  return jiraSearchAll(
+    `project = YSHUB AND component = Integration AND status changed to (Done, Resolved, Closed, Canceled, "Deployment in Queue") DURING ("${startDate}", "${endDate}")`,
+    "summary,status,assignee,priority,created,resolutiondate,statuscategorychangedate,customfield_10074,customfield_10229,customfield_10196,issuetype"
+  );
+}
+
+async function fetchYshubBugsForSla(startDate: string, endDate: string): Promise<JiraIssue[]> {
+  // Bug-type tickets closed during the period — used for bugs-only SLA analysis
+  return jiraSearchAll(
+    `project = YSHUB AND issuetype = Bug AND component = Integration AND status changed to (Done, Resolved, Closed, "Deployment in Queue") DURING ("${startDate}", "${endDate}")`,
+    "summary,status,assignee,priority,created,resolutiondate,statuscategorychangedate,customfield_10074,customfield_10196,reporter"
   );
 }
 
@@ -326,6 +345,33 @@ function getBugEnvironment(issue: JiraIssue): "PROD" | "SBX" | "STG" {
   return "PROD"; // fallback
 }
 
+// ── Reporter helpers for bug SLA filtering ──
+
+function getReporterName(issue: JiraIssue): string {
+  const r = issue.fields.reporter as { displayName?: string } | null;
+  return r?.displayName || "Unknown";
+}
+
+function isInternalReporter(reporterName: string, roster: RosterEntry[]): boolean {
+  const lower = reporterName.toLowerCase();
+  if (lower === "on call guardian" || lower === "atlassian assist") return true;
+  return roster.some(r =>
+    r.displayName.toLowerCase() === lower ||
+    r.jiraNames.some(jn => jn.toLowerCase() === lower)
+  );
+}
+
+function getBugEnvRaw(issue: JiraIssue): string {
+  const envField = getField(issue, "customfield_10196") as Array<{ value?: string }> | null;
+  if (!envField || envField.length === 0) return "production";
+  return envField.map(e => (e.value || "").toLowerCase()).join(",");
+}
+
+function isBugProd(issue: JiraIssue): boolean {
+  const env = getBugEnvRaw(issue);
+  return env.includes("production") || env.includes("prod") || env.includes("all");
+}
+
 // ── Main sync function ──
 
 export interface SyncResult {
@@ -333,10 +379,12 @@ export interface SyncResult {
   teamMetrics: MonthlyTeamMetrics;
   developerMetrics: DeveloperMonthly[];
   onCallPriority: OnCallPriorityMetrics[];
+  bugSla: BugSlaMetrics;
   yshubBugs: BugTicket[];
   debug?: {
     totalDemRaw: number;
     totalYshubRaw: number;
+    totalYshubAllClosed: number;
     totalSbxBugsRaw: number;
     totalProdBugsRaw: number;
     totalYshubBugsRaw: number;
@@ -351,9 +399,11 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   const lastDay = new Date(parseInt(year), parseInt(m), 0).getDate();
   const endDate = `${year}-${m}-${String(lastDay).padStart(2, "0")}`;
 
-  const [demTasks, yshubTickets, sbxBugsRaw, prodBugsRaw, yshubBugsRaw] = await Promise.all([
+  const [demTasks, yshubTickets, yshubAllClosed, yshubBugsForSla, sbxBugsRaw, prodBugsRaw, yshubBugsRaw] = await Promise.all([
     fetchDemTasks(startDate, endDate),
     fetchYshubTickets(startDate, endDate),
+    fetchYshubAllClosed(startDate, endDate),
+    fetchYshubBugsForSla(startDate, endDate),
     fetchSbxBugs(startDate, endDate),
     fetchProdBugs(startDate, endDate),
     fetchYshubBugs(startDate, endDate),
@@ -558,9 +608,9 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     source: "YSHUB" as const,
   }));
 
-  // ── On-Call priority breakdown ──
+  // ── On-Call priority breakdown (uses all closed tickets for team-level view) ──
   const byPriority: Record<string, JiraIssue[]> = {};
-  for (const t of yshubTickets) {
+  for (const t of yshubAllClosed) {
     const p = (getField(t, "priority") as { name?: string })?.name || "Low";
     if (!byPriority[p]) byPriority[p] = [];
     byPriority[p].push(t);
@@ -588,10 +638,11 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     };
   });
 
-  // ── Team metrics ──
+  // ── Team metrics (use yshubAllClosed for totals — includes Canceled + Bug types) ──
   const allHours: number[] = [];
   let teamSlaOk = 0;
   let teamSlaTotal = 0;
+  // SLA and resolution metrics still computed from non-canceled tickets only (meaningful metrics)
   for (const t of yshubTickets) {
     const sla = extractSla(t);
     if (sla) {
@@ -608,10 +659,58 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     onTimeDeliveryPct: otdDenominator > 0 ? Math.round(otdNumerator / otdDenominator) : 0,
     prodBugs: totalProdBugs,
     sbxBugs: totalSbxBugs,
-    ticketsResolved: yshubTickets.length,
+    ticketsResolved: yshubAllClosed.length, // All YSHUB tickets closed (incl. Canceled + Bugs)
     slaCompliancePct: teamSlaTotal > 0 ? Math.round((teamSlaOk / teamSlaTotal) * 1000) / 10 : 0,
     medianResolutionDays: allHours.length > 0 ? Math.round(median(allHours) / 24 * 10) / 10 : 0,
     activeDevelopers,
+  };
+
+  // ── Bug-only SLA analysis ──
+  // Qualifying: Production bugs (any reporter) + non-production bugs (only external reporters)
+  const qualifyingBugs = yshubBugsForSla.filter(issue => {
+    if (isBugProd(issue)) return true; // Production: all reporters
+    const reporter = getReporterName(issue);
+    return !isInternalReporter(reporter, roster); // Non-prod: only external (merchant/company)
+  });
+
+  const bugSlaByPriority: Record<string, { ok: number; total: number; hours: number[] }> = {};
+  const priorityOrderForBugs: PriorityLabel[] = ["Highest", "High", "Medium", "Low"];
+  for (const p of priorityOrderForBugs) bugSlaByPriority[p] = { ok: 0, total: 0, hours: [] };
+
+  let bugSlaOk = 0;
+  let bugSlaTotal = 0;
+  const bugAllHours: number[] = [];
+
+  for (const issue of qualifyingBugs) {
+    const sla = extractSla(issue);
+    if (!sla) continue;
+    const hrs = sla.elapsedMs / (1000 * 60 * 60);
+    bugSlaTotal++;
+    bugAllHours.push(hrs);
+    if (!sla.breached) bugSlaOk++;
+
+    const prio = (getField(issue, "priority") as { name?: string })?.name || "Low";
+    const bucket = bugSlaByPriority[prio] || bugSlaByPriority.Low;
+    bucket.total++;
+    bucket.hours.push(hrs);
+    if (!sla.breached) bucket.ok++;
+  }
+
+  const bugSla: BugSlaMetrics = {
+    month,
+    totalBugs: qualifyingBugs.length,
+    overallSlaPct: bugSlaTotal > 0 ? Math.round((bugSlaOk / bugSlaTotal) * 1000) / 10 : 0,
+    medianResolutionHrs: bugAllHours.length > 0 ? Math.round(median(bugAllHours) * 10) / 10 : 0,
+    byPriority: priorityOrderForBugs.map(p => {
+      const b = bugSlaByPriority[p];
+      return {
+        month,
+        priority: p,
+        count: b.total,
+        slaCompliancePct: b.total > 0 ? Math.round((b.ok / b.total) * 1000) / 10 : 0,
+        medianResolutionHrs: b.hours.length > 0 ? Math.round(median(b.hours) * 10) / 10 : 0,
+      };
+    }),
   };
 
   return {
@@ -619,10 +718,12 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     teamMetrics,
     developerMetrics,
     onCallPriority,
+    bugSla,
     yshubBugs,
     debug: {
       totalDemRaw: demTasks.length,
       totalYshubRaw: yshubTickets.length,
+      totalYshubAllClosed: yshubAllClosed.length,
       totalSbxBugsRaw: sbxBugsRaw.length,
       totalProdBugsRaw: prodBugsRaw.length,
       totalYshubBugsRaw: yshubBugsRaw.length,

@@ -15,12 +15,6 @@ const DEM_WEIGHTS = [
   { weight: 1, type: "Tech Debt", description: "Refactoring, cleanup, translations, internal improvements", color: "var(--muted)" },
 ];
 
-const ONCALL_WEIGHTS = [
-  { weight: 3, priority: "Highest", sla: "72h (3 days)", color: "var(--danger)" },
-  { weight: 2, priority: "High", sla: "48h (2 days)", color: "var(--warning)" },
-  { weight: 1.5, priority: "Medium", sla: "72h (3 days)", color: "var(--accent)" },
-  { weight: 1, priority: "Low", sla: "120h (5 days)", color: "var(--muted)" },
-];
 
 function Section({ title, color, children }: { title: string; color: string; children: React.ReactNode }) {
   return (
@@ -98,9 +92,9 @@ export default function MethodologyModal({ open, onClose }: Props) {
           <Section title="Tasks at Hand Framework — Weighted Tasks (WT)" color="var(--accent)">
             <div className="space-y-3">
               <p className="text-[11px] text-[var(--muted)] leading-relaxed">
-                <strong className="text-[var(--foreground)]">Weighted Tasks (WT)</strong> normalizes different types of work into comparable units.
+                <strong className="text-[var(--foreground)]">Weighted Tasks (WT)</strong> normalizes different types of integration work into comparable units.
                 A developer completing one ISO integration (WT 7) contributes more than seven tech debt items (WT 1 each).
-                WT is the sum of all weighted DEM tasks plus weighted YSHUB on-call tickets.
+                WT only applies to DEM integration tasks. On-call tickets are measured by count, not weighted.
               </p>
 
               <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] mt-2 mb-1">DEM Integration Weights (1–7 scale)</div>
@@ -121,30 +115,9 @@ export default function MethodologyModal({ open, onClose }: Props) {
                 ))}
               </div>
 
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--oncall)] mt-4 mb-1">On-Call Ticket Weights (by Jira Priority)</div>
-              <p className="text-[11px] text-[var(--muted)] mb-2">
-                Each YSHUB ticket is weighted by its Jira priority level. Higher-priority tickets carry more weight in the WT calculation.
+              <p className="text-[11px] text-[var(--muted)] mt-3 leading-relaxed">
+                <strong className="text-[var(--oncall)]">On-Call tickets</strong> are not weighted — they are measured by simple ticket count, SLA compliance, and resolution time.
               </p>
-              <div className="overflow-hidden rounded-lg border border-[var(--border)]">
-                <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="bg-[var(--surface)]">
-                      <th className="py-2 px-3 text-left text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">Priority</th>
-                      <th className="py-2 px-3 text-center text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">Weight</th>
-                      <th className="py-2 px-3 text-right text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">SLA Target</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ONCALL_WEIGHTS.map(w => (
-                      <tr key={w.priority} className="border-t border-[var(--border)]">
-                        <td className="py-2 px-3 font-semibold" style={{ color: w.color }}>{w.priority}</td>
-                        <td className="py-2 px-3 text-center font-bold tabular-nums" style={{ color: w.color }}>{w.weight}</td>
-                        <td className="py-2 px-3 text-right text-[var(--foreground-secondary)] tabular-nums">{w.sla}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
           </Section>
 
@@ -255,7 +228,7 @@ export default function MethodologyModal({ open, onClose }: Props) {
           <Section title="Insights &amp; Awards" color="var(--foreground-secondary)">
             <div className="space-y-2">
               <Def label="Highest Output" color="var(--accent)">
-                Developer with the highest Weighted Tasks (WT) in the month. Considers both DEM and YSHUB work.
+                Developer with the highest Weighted Tasks (WT) in the month. Only DEM integration tasks are weighted.
               </Def>
               <Def label="Most Timely" color="var(--accent)">
                 Developer with the highest On-Time Delivery % (minimum 1 task with a due date).

@@ -501,13 +501,8 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     const yshubCount = dd.yshubTickets.length;
     const sbxCount = dd.sbxBugs.length;
 
-    // Weight: DEM tasks use Tasks at Hand, YSHUB use priority
-    const weightedTasks = dd.demTasks.reduce((sum, t) => sum + determineWeight(t), 0)
-      + dd.yshubTickets.reduce((sum, t) => {
-        const priority = (getField(t, "priority") as { name?: string })?.name || "Low";
-        const pw: Record<string, number> = { Highest: 3, High: 2, Medium: 1.5, Low: 1 };
-        return sum + (pw[priority] || 1);
-      }, 0);
+    // Weight: only DEM tasks use Tasks at Hand framework
+    const weightedTasks = dd.demTasks.reduce((sum, t) => sum + determineWeight(t), 0);
 
     // OTD
     let onTimePct = 0;

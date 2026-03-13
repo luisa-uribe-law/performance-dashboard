@@ -21,32 +21,12 @@ const squadLabels: Record<string, string> = {
   "dedicated-oncall": "Dedicated On-Call",
 };
 
-function StatWithDelta({ label, value, prev, suffix, color, invertDelta }: {
-  label: string; value: number; prev?: number; suffix?: string; color: string; invertDelta?: boolean;
-}) {
-  const delta = prev !== undefined ? value - prev : null;
-  const positive = invertDelta ? (delta !== null && delta <= 0) : (delta !== null && delta >= 0);
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-[var(--border)]">
-      <span className="text-xs text-[var(--muted)]">{label}</span>
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-bold" style={{ color }}>{value}{suffix || ""}</span>
-        {delta !== null && (
-          <span className={`text-[10px] font-semibold ${positive ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
-            {delta >= 0 ? "+" : ""}{Number.isInteger(delta) ? delta : delta.toFixed(1)}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function DevProfileModal({ developer, allMonths, aggregated, onClose }: Props) {
   const latest = aggregated || allMonths[allMonths.length - 1];
   if (!latest) return null;
 
   const isAggregated = !!aggregated;
-  const prev = !isAggregated && allMonths.length >= 2 ? allMonths[allMonths.length - 2] : undefined;
 
   const isPartialMonth = useMemo(() => {
     const now = new Date();
@@ -86,47 +66,74 @@ export default function DevProfileModal({ developer, allMonths, aggregated, onCl
         </div>
 
         <div className="px-6 py-5 space-y-5">
-          {/* Stats with vs-previous on the right */}
+          {/* ── Integration Requests section ── */}
           <div>
-            <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
-              Performance — {isAggregated ? "Selected Range" : formatMonth(latest.month)}{prev ? ` vs ${formatMonth(prev.month)}` : ""}
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--accent)" }}>
+              Integration Requests
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-1">
-              <StatWithDelta label="Tasks Completed" value={latest.tasksCompleted} prev={prev?.tasksCompleted} color="var(--accent)" />
-              <StatWithDelta label="Weighted Throughput" value={latest.weightedTasks} prev={prev?.weightedTasks} color="var(--accent)" />
-              <StatWithDelta label="On-Time Delivery" value={latest.onTimeDeliveryPct} prev={prev?.onTimeDeliveryPct} suffix="%" color="var(--success)" />
-              <StatWithDelta label="PROD Bugs" value={latest.prodBugs} prev={prev?.prodBugs} color={latest.prodBugs === 0 ? "var(--success)" : "var(--danger)"} invertDelta />
-              <StatWithDelta label="SBX Bugs" value={latest.sbxBugs} prev={prev?.sbxBugs} color="var(--muted)" invertDelta />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold" style={{ color: "var(--accent)" }}>{latest.tasksCompleted}</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">Tasks</div>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold" style={{ color: "var(--accent)" }}>{latest.weightedTasks}</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">Weighted Tasks</div>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold" style={{ color: latest.prodBugs === 0 ? "var(--success)" : "var(--danger)" }}>{latest.prodBugs}</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">PROD Bugs</div>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold text-[var(--muted)]">{latest.sbxBugs}</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">SBX Bugs</div>
+              </div>
             </div>
           </div>
 
-          {/* Trend charts */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Output Trend</div>
-              <TrendChart
-                data={allMonths}
-                xKey="month"
-                areas={[{ key: "weightedTasks", color: "var(--accent)", name: "Weighted Tasks" }]}
-                height={130}
-                partialLast={isPartialMonth}
-              />
+          {/* ── On-Call Support section ── */}
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--oncall)" }}>
+              On-Call Support
             </div>
-            <div>
-              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Quality</div>
-              <TrendChart
-                data={allMonths}
-                xKey="month"
-                lines={[
-                  { key: "onTimeDeliveryPct", color: "var(--success)", name: "OTD %" },
-                ]}
-                yDomain={[0, 100]}
-                yFormatter={(v) => `${v}%`}
-                height={130}
-                partialLast={isPartialMonth}
-              />
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold" style={{ color: "var(--oncall)" }}>{latest.ticketsResolved}</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">Tickets</div>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold" style={{ color: latest.slaCompliancePct >= 80 ? "var(--success)" : latest.slaCompliancePct >= 50 ? "var(--warning)" : "var(--danger)" }}>{latest.slaCompliancePct}%</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">SLA</div>
+              </div>
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
+                <div className="text-lg font-bold" style={{ color: "var(--oncall)" }}>{latest.medianResolutionHrs}h</div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">Median Time</div>
+              </div>
             </div>
           </div>
+
+          {/* Output Trend — ticket counts: DEM + On-Call + Total */}
+          {allMonths.length > 1 && (
+            <div>
+              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Output Trend (Tickets)</div>
+              <TrendChart
+                data={allMonths.map(d => ({
+                  month: d.month,
+                  integrations: d.tasksCompleted,
+                  onCall: d.ticketsResolved,
+                  total: d.tasksCompleted + d.ticketsResolved,
+                }))}
+                xKey="month"
+                lines={[
+                  { key: "integrations", color: "var(--accent)", name: "DEM Tickets" },
+                  { key: "onCall", color: "var(--oncall)", name: "On-Call Tickets" },
+                  { key: "total", color: "var(--success)", name: "Total" },
+                ]}
+                height={140}
+                partialLast={isPartialMonth}
+              />
+            </div>
+          )}
 
           {/* Integrations list */}
           {latest.integrations.length > 0 && (
@@ -237,27 +244,13 @@ export default function DevProfileModal({ developer, allMonths, aggregated, onCl
             </div>
           )}
 
-          {/* On-Call section */}
+          {/* On-Call details */}
           {(latest.ticketsResolved > 0 || isDedicatedOncall) && (
             <div>
-              <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">On-Call Results</div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
-                  <div className="text-lg font-bold" style={{ color: "var(--oncall)" }}>{latest.ticketsResolved}</div>
-                  <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">Tickets</div>
-                </div>
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
-                  <div className="text-lg font-bold" style={{ color: "var(--success)" }}>{latest.slaCompliancePct}%</div>
-                  <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">SLA</div>
-                </div>
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-center">
-                  <div className="text-lg font-bold" style={{ color: "var(--oncall)" }}>{latest.medianResolutionHrs}h</div>
-                  <div className="text-[9px] uppercase tracking-wider text-[var(--muted)] mt-0.5">Median Time</div>
-                </div>
-              </div>
               {/* On-call trend for dedicated members */}
               {isDedicatedOncall && allMonths.length > 1 && (
-                <div className="mt-3">
+                <div className="mb-3">
+                  <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-1.5">On-Call Trend</div>
                   <TrendChart
                     data={allMonths}
                     xKey="month"

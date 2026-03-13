@@ -317,21 +317,21 @@ The Integrations team has ~26 developers organized into:
 | 2 | Card — Existing Provider | Card integration on existing connector |
 | 1 | Tech Debt | Refactoring, cleanup, internal improvements |
 
-### On-Call Ticket Weights (by Jira priority)
-| Priority | Weight | SLA Target |
-|----------|--------|------------|
-| Highest | 3 | 72h (3 days) |
-| High | 2 | 48h (2 days) |
-| Medium | 1.5 | 72h (3 days) |
-| Low | 1 | 120h (5 days) |
+**Weighted Tasks (WT)** = sum of DEM integration task weights only. On-call tickets are measured by count, not weighted.
 
-**Weighted Tasks (WT)** = sum of all ticket weights for a developer. Allows fair comparison regardless of ticket type or complexity.
+### SLA Targets (by Jira priority)
+| Priority | SLA Target |
+|----------|------------|
+| Highest | 72h (3 days) |
+| High | 48h (2 days) |
+| Medium | 72h (3 days) |
+| Low | 120h (5 days) |
 
 ## Metrics Definitions
 - **DEM Tasks**: Epics + standalone Stories (excl. Dev Validation) + Tech Debt that reached Done or Implementation Complete
 - **On-Call Tickets (Team)**: Total YSHUB tickets (component=Integration) that reached Done/Resolved/Closed/Canceled/Deployment in Queue — includes ALL types and Canceled tickets for the team-level count
 - **On-Call Tickets (per Dev)**: Excludes Canceled tickets at the individual level — only Done/Resolved/Closed/Deployment in Queue
-- **Weighted Tasks (WT)**: Complexity-adjusted total work output (DEM weights + YSHUB weights)
+- **Weighted Tasks (WT)**: Complexity-adjusted DEM integration output only (1-7 scale). On-call tickets are counted, not weighted
 - **On-Time Delivery (OTD%)**: % of DEM tasks completed by their due date
 - **PROD Bugs**: Production bugs attributed via Jira "Responsible Party of the Bug" field (customfield_14104)
 - **SBX Bugs**: In-Sprint Bugs from DEM board (found during QA/testing), attributed by assignee

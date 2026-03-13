@@ -197,7 +197,6 @@ function developerCard(d: DeveloperMonthly): string {
       kv("On-Call Tickets", d.ticketsResolved),
       kv("SLA Compliance", d.slaCompliancePct, "%"),
       kv("Median Resolution", d.medianResolutionHrs > 0 ? `${(d.medianResolutionHrs / 24).toFixed(1)}d (${Math.round(d.medianResolutionHrs)}h)` : "N/A"),
-      kv("Weighted Tasks", d.weightedTasks),
     );
   } else {
     lines.push(

@@ -171,46 +171,42 @@ export default function TrendChart({
   // Line chart
   {
     const isPartial = partialLast && data.length > 1;
-    const lineData = isPartial
-      ? data.map((d, i) => {
-          if (i !== data.length - 1) return d;
-          const nulled = { ...d };
-          for (const l of lines || []) nulled[l.key] = null;
-          return nulled;
-        })
-      : data;
-    const partialPoint = isPartial ? data[data.length - 1] : null;
+    const lastIdx = data.length - 1;
 
     return (
       <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={lineData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+        <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#353858" vertical={false} />
           <XAxis dataKey={xKey} tick={{ fill: "#B0B4D0", fontSize: 11 }} tickFormatter={(v) => {
             const label = formatX(v);
-            return isPartial && v === data[data.length - 1][xKey] ? `${label}*` : label;
+            return isPartial && v === data[lastIdx][xKey] ? `${label}*` : label;
           }} axisLine={{ stroke: "#333658" }} />
           <YAxis tick={{ fill: "#B0B4D0", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => {
             const label = formatX(v);
-            return isPartial && v === data[data.length - 1][xKey] ? `${label} (in progress)` : label;
+            return isPartial && v === data[lastIdx][xKey] ? `${label} (in progress)` : label;
           }} />
           {lines?.map(l => (
             <Line key={l.key} type="monotone" dataKey={l.key} stroke={resolveColor(l.color)} name={l.name}
-              strokeWidth={2.5} dot={{ r: 4, fill: resolveColor(l.color), strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 2, stroke: resolveColor(l.color), fill: "#1C1E2E" }} animationDuration={800}
-              connectNulls={false}
-            />
-          ))}
-          {/* Isolated dots for partial month */}
-          {partialPoint && lines?.map(l => (
-            <ReferenceDot
-              key={`partial-${l.key}`}
-              x={partialPoint[xKey]}
-              y={partialPoint[l.key]}
-              r={5}
-              fill="#1C1E2E"
-              stroke={resolveColor(l.color)}
-              strokeWidth={2}
-              strokeDasharray="3 2"
+              strokeWidth={2.5}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              dot={(dotProps: any) => {
+                const { cx, cy, index } = dotProps;
+                const isLast = isPartial && index === lastIdx;
+                return (
+                  <circle
+                    key={`dot-${l.key}-${index}`}
+                    cx={cx} cy={cy}
+                    r={isLast ? 5 : 4}
+                    fill={isLast ? "#1C1E2E" : resolveColor(l.color)}
+                    stroke={isLast ? resolveColor(l.color) : "none"}
+                    strokeWidth={isLast ? 2 : 0}
+                    strokeDasharray={isLast ? "3 2" : undefined}
+                  />
+                );
+              }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: resolveColor(l.color), fill: "#1C1E2E" }}
+              animationDuration={800}
             />
           ))}
         </LineChart>

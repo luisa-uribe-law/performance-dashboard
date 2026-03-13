@@ -8,6 +8,7 @@ import TrendChart from "./TrendChart";
 interface Props {
   developer: string;
   allMonths: DeveloperMonthly[];
+  aggregated?: DeveloperMonthly; // pre-aggregated entry for multi-month/range mode
   onClose: () => void;
 }
 
@@ -40,11 +41,12 @@ function StatWithDelta({ label, value, prev, suffix, color, invertDelta }: {
   );
 }
 
-export default function DevProfileModal({ developer, allMonths, onClose }: Props) {
-  const latest = allMonths[allMonths.length - 1];
+export default function DevProfileModal({ developer, allMonths, aggregated, onClose }: Props) {
+  const latest = aggregated || allMonths[allMonths.length - 1];
   if (!latest) return null;
 
-  const prev = allMonths.length >= 2 ? allMonths[allMonths.length - 2] : undefined;
+  const isAggregated = !!aggregated;
+  const prev = !isAggregated && allMonths.length >= 2 ? allMonths[allMonths.length - 2] : undefined;
 
   const isPartialMonth = useMemo(() => {
     const now = new Date();
@@ -76,7 +78,7 @@ export default function DevProfileModal({ developer, allMonths, onClose }: Props
                 </span>
               )}
             </div>
-            <p className="text-xs text-[var(--muted)]">{squad} &middot; {formatMonth(latest.month)}</p>
+            <p className="text-xs text-[var(--muted)]">{squad} &middot; {isAggregated ? `${formatMonth(allMonths[0]?.month || latest.month)} — ${formatMonth(allMonths[allMonths.length - 1]?.month || latest.month)}` : formatMonth(latest.month)}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-white hover:border-[var(--border-light)] transition-colors">
             &times;
@@ -87,7 +89,7 @@ export default function DevProfileModal({ developer, allMonths, onClose }: Props
           {/* Stats with vs-previous on the right */}
           <div>
             <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
-              Performance — {formatMonth(latest.month)}{prev ? ` vs ${formatMonth(prev.month)}` : ""}
+              Performance — {isAggregated ? "Selected Range" : formatMonth(latest.month)}{prev ? ` vs ${formatMonth(prev.month)}` : ""}
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-1">
               <StatWithDelta label="Tasks Completed" value={latest.tasksCompleted} prev={prev?.tasksCompleted} color="var(--accent)" />

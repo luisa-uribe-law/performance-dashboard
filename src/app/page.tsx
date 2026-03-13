@@ -176,10 +176,17 @@ export default function Dashboard() {
 
   const devAllMonths = useMemo(() => {
     if (!selectedDev || !data) return [];
+    if (isMultiMonth) {
+      // In range mode, show only months within the active range
+      const monthSet = new Set(activeMonths);
+      return data.developerMetrics
+        .filter(d => d.developer === selectedDev && monthSet.has(d.month))
+        .sort((a, b) => a.month.localeCompare(b.month));
+    }
     return data.developerMetrics
       .filter(d => d.developer === selectedDev && d.month <= selectedMonth)
       .sort((a, b) => a.month.localeCompare(b.month));
-  }, [selectedDev, data, selectedMonth]);
+  }, [selectedDev, data, selectedMonth, isMultiMonth, activeMonths]);
 
   // Date label for the banner
   const dateLabel = useMemo(() => {
@@ -325,6 +332,7 @@ export default function Dashboard() {
         <DevProfileModal
           developer={selectedDev}
           allMonths={devAllMonths}
+          aggregated={isMultiMonth ? aggregatedDevs.find(d => d.developer === selectedDev) : undefined}
           onClose={() => setSelectedDev(null)}
         />
       )}

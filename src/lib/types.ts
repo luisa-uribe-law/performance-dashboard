@@ -115,7 +115,3 @@ export interface PerformanceData {
 
 export type GroupFilter = "all" | Squad;
 
-export interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}

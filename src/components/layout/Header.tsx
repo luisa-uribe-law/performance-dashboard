@@ -19,8 +19,6 @@ interface Props {
   onDateRangeChange: (dr: DateRange) => void;
   group: GroupFilter;
   onGroupChange: (group: GroupFilter) => void;
-  onChatToggle: () => void;
-  chatOpen: boolean;
   developers: Developer[];
   onDevSelect: (name: string) => void;
   onBugsView: () => void;
@@ -36,7 +34,7 @@ const groupLabels: Record<GroupFilter, string> = {
 };
 
 export default function Header({
-  months, dateRange, onDateRangeChange, group, onGroupChange, onChatToggle, chatOpen, developers, onDevSelect, onBugsView, bugsViewActive,
+  months, dateRange, onDateRangeChange, group, onGroupChange, developers, onDevSelect, onBugsView, bugsViewActive,
 }: Props) {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -145,20 +143,7 @@ export default function Header({
           ))}
         </select>
 
-        {/* Chat toggle */}
-        <button
-          onClick={onChatToggle}
-          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-            chatOpen
-              ? "bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/25"
-              : "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-light)]"
-          }`}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          {chatOpen ? "Close" : "Chat"}
-        </button>
+
       </div>
 
       {/* Date range bar */}

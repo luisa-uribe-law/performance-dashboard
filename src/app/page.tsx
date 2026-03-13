@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { PerformanceData, GroupFilter, DeveloperMonthly } from "@/lib/types";
 import { formatMonthLong, formatMonth } from "@/lib/format";
 import Header, { DateRange, DateMode } from "@/components/layout/Header";
-import ChatPanel from "@/components/layout/ChatPanel";
+
 import KpiCard from "@/components/shared/KpiCard";
 import DevProfileModal from "@/components/shared/DevProfileModal";
 import IntegrationBugsView from "@/components/shared/IntegrationBugsView";
@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [data, setData] = useState<PerformanceData | null>(null);
   const [allMonths, setAllMonths] = useState<string[]>([]);
   const [group, setGroup] = useState<GroupFilter>("all");
-  const [chatOpen, setChatOpen] = useState(false);
+
   const [selectedDev, setSelectedDev] = useState<string | null>(null);
   const [view, setView] = useState<View>("dashboard");
   const [methodologyOpen, setMethodologyOpen] = useState(false);
@@ -210,15 +210,12 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      <div className={`transition-all duration-300 ${chatOpen ? "sm:mr-[440px]" : ""}`}>
       <Header
         months={allMonths}
         dateRange={dateRange}
         onDateRangeChange={handleDateRangeChange}
         group={group}
         onGroupChange={setGroup}
-        onChatToggle={() => setChatOpen(!chatOpen)}
-        chatOpen={chatOpen}
         developers={data.developers}
         onDevSelect={setSelectedDev}
         onBugsView={() => setView(view === "bugs" ? "dashboard" : "bugs")}
@@ -317,14 +314,6 @@ export default function Dashboard() {
           />
         )}
       </main>
-
-      </div>{/* end chat-aware wrapper */}
-
-      <ChatPanel
-        open={chatOpen}
-        onClose={() => setChatOpen(false)}
-        currentMonth={selectedMonth}
-      />
 
       <MethodologyModal open={methodologyOpen} onClose={() => setMethodologyOpen(false)} />
 

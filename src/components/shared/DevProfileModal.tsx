@@ -135,112 +135,144 @@ export default function DevProfileModal({ developer, allMonths, aggregated, onCl
             </div>
           )}
 
-          {/* Integrations list */}
+          {/* Integrations list — grouped by month in multi-month mode */}
           {latest.integrations.length > 0 && (
             <div>
               <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
                 Integrations Worked On ({latest.integrations.length})
               </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="bg-[var(--surface)]">
-                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
-                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
-                      <th className="py-1.5 px-3 text-right text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">WT</th>
-                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">On-Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {latest.integrations.map((t, i) => (
-                      <tr key={i} className="border-t border-[var(--border)]">
-                        <td className="py-1.5 px-3 font-mono">
-                          <a href={`${JIRA_BROWSE}/${t.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline">{t.key}</a>
-                        </td>
-                        <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{t.summary}</td>
-                        <td className="py-1.5 px-3 text-right tabular-nums text-[var(--foreground)]">{t.weightedTasks}</td>
-                        <td className="py-1.5 px-3 text-center">
-                          <span className={t.onTime ? "text-[var(--success)]" : "text-[var(--danger)]"}>
-                            {t.onTime ? "Yes" : "No"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {(isAggregated ? allMonths : [latest]).map(md => {
+                if (md.integrations.length === 0) return null;
+                return (
+                  <div key={`int-${md.month}`} className="mb-3">
+                    {isAggregated && (
+                      <div className="text-[11px] font-semibold text-[var(--accent)] mb-1">{formatMonth(md.month)}</div>
+                    )}
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                      <table className="w-full text-[12px]">
+                        <thead>
+                          <tr className="bg-[var(--surface)]">
+                            <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
+                            <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
+                            <th className="py-1.5 px-3 text-right text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">WT</th>
+                            <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">On-Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {md.integrations.map((t, i) => (
+                            <tr key={i} className="border-t border-[var(--border)]">
+                              <td className="py-1.5 px-3 font-mono">
+                                <a href={`${JIRA_BROWSE}/${t.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline">{t.key}</a>
+                              </td>
+                              <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{t.summary}</td>
+                              <td className="py-1.5 px-3 text-right tabular-nums text-[var(--foreground)]">{t.weightedTasks}</td>
+                              <td className="py-1.5 px-3 text-center">
+                                <span className={t.onTime ? "text-[var(--success)]" : "text-[var(--danger)]"}>
+                                  {t.onTime ? "Yes" : "No"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {/* In-Sprint Bugs (DEM board) */}
+          {/* In-Sprint Bugs (DEM board) — grouped by month */}
           {latest.bugs.filter(b => b.source === "DEM").length > 0 && (
             <div>
               <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
                 In-Sprint Bugs — DEM ({latest.bugs.filter(b => b.source === "DEM").length})
               </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="bg-[var(--surface)]">
-                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
-                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
-                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {latest.bugs.filter(b => b.source === "DEM").map((b, i) => (
-                      <tr key={i} className="border-t border-[var(--border)]">
-                        <td className="py-1.5 px-3 font-mono">
-                          <a href={`${JIRA_BROWSE}/${b.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] hover:underline">{b.key}</a>
-                        </td>
-                        <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[250px]">{b.summary}</td>
-                        <td className="py-1.5 px-3 text-center">
-                          <span className={`text-[10px] font-bold ${b.env === "PROD" ? "text-[var(--danger)]" : "text-[var(--warning)]"}`}>{b.env}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {(isAggregated ? allMonths : [latest]).map(md => {
+                const demBugs = md.bugs.filter(b => b.source === "DEM");
+                if (demBugs.length === 0) return null;
+                return (
+                  <div key={`dem-${md.month}`} className="mb-3">
+                    {isAggregated && (
+                      <div className="text-[11px] font-semibold text-[var(--warning)] mb-1">{formatMonth(md.month)}</div>
+                    )}
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                      <table className="w-full text-[12px]">
+                        <thead>
+                          <tr className="bg-[var(--surface)]">
+                            <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
+                            <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
+                            <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {demBugs.map((b, i) => (
+                            <tr key={i} className="border-t border-[var(--border)]">
+                              <td className="py-1.5 px-3 font-mono">
+                                <a href={`${JIRA_BROWSE}/${b.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] hover:underline">{b.key}</a>
+                              </td>
+                              <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[250px]">{b.summary}</td>
+                              <td className="py-1.5 px-3 text-center">
+                                <span className={`text-[10px] font-bold ${b.env === "PROD" ? "text-[var(--danger)]" : "text-[var(--warning)]"}`}>{b.env}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {/* Production Bugs (YSHUB board) */}
+          {/* Production Bugs (YSHUB board) — grouped by month */}
           {latest.bugs.filter(b => b.source === "YSHUB").length > 0 && (
             <div>
               <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
                 Production Bugs — YSHUB ({latest.bugs.filter(b => b.source === "YSHUB").length})
               </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="bg-[var(--surface)]">
-                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
-                      <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
-                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Provider</th>
-                      <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {latest.bugs.filter(b => b.source === "YSHUB").map((b, i) => (
-                      <tr key={i} className="border-t border-[var(--border)]">
-                        <td className="py-1.5 px-3 font-mono">
-                          <a href={`${JIRA_BROWSE}/${b.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--danger)] hover:underline">{b.key}</a>
-                        </td>
-                        <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{b.summary}</td>
-                        <td className="py-1.5 px-3 text-center text-[10px] text-[var(--foreground)]">{b.provider}</td>
-                        <td className="py-1.5 px-3 text-center">
-                          <span className={`text-[10px] font-bold ${
-                            b.env === "PROD" ? "text-[var(--danger)]" :
-                            b.env === "STG" ? "text-[var(--accent)]" :
-                            "text-[var(--warning)]"
-                          }`}>{b.env}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {(isAggregated ? allMonths : [latest]).map(md => {
+                const yshubBugs = md.bugs.filter(b => b.source === "YSHUB");
+                if (yshubBugs.length === 0) return null;
+                return (
+                  <div key={`yshub-${md.month}`} className="mb-3">
+                    {isAggregated && (
+                      <div className="text-[11px] font-semibold text-[var(--danger)] mb-1">{formatMonth(md.month)}</div>
+                    )}
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                      <table className="w-full text-[12px]">
+                        <thead>
+                          <tr className="bg-[var(--surface)]">
+                            <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
+                            <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
+                            <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Provider</th>
+                            <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {yshubBugs.map((b, i) => (
+                            <tr key={i} className="border-t border-[var(--border)]">
+                              <td className="py-1.5 px-3 font-mono">
+                                <a href={`${JIRA_BROWSE}/${b.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--danger)] hover:underline">{b.key}</a>
+                              </td>
+                              <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{b.summary}</td>
+                              <td className="py-1.5 px-3 text-center text-[10px] text-[var(--foreground)]">{b.provider}</td>
+                              <td className="py-1.5 px-3 text-center">
+                                <span className={`text-[10px] font-bold ${
+                                  b.env === "PROD" ? "text-[var(--danger)]" :
+                                  b.env === "STG" ? "text-[var(--accent)]" :
+                                  "text-[var(--warning)]"
+                                }`}>{b.env}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -260,50 +292,60 @@ export default function DevProfileModal({ developer, allMonths, aggregated, onCl
                   />
                 </div>
               )}
-              {/* On-call tickets list */}
+              {/* On-call tickets list — grouped by month */}
               {latest.onCallTickets && latest.onCallTickets.length > 0 && (
                 <div className="mt-3">
                   <div className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2">
                     Tickets Handled ({latest.onCallTickets.length})
                   </div>
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                    <table className="w-full text-[12px]">
-                      <thead>
-                        <tr className="bg-[var(--surface)]">
-                          <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
-                          <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
-                          <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Priority</th>
-                          <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">SLA</th>
-                          <th className="py-1.5 px-3 text-right text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Time</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {latest.onCallTickets.map((t, i) => (
-                          <tr key={i} className="border-t border-[var(--border)]">
-                            <td className="py-1.5 px-3 font-mono">
-                              <a href={`${JIRA_BROWSE}/${t.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--oncall)] hover:underline">{t.key}</a>
-                            </td>
-                            <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{t.summary}</td>
-                            <td className="py-1.5 px-3 text-center">
-                              <span className={`text-[10px] font-bold ${
-                                t.priority === "Highest" ? "text-[var(--danger)]" :
-                                t.priority === "High" ? "text-[var(--warning)]" :
-                                "text-[var(--muted)]"
-                              }`}>{t.priority}</span>
-                            </td>
-                            <td className="py-1.5 px-3 text-center">
-                              <span className={`text-[10px] font-bold ${t.slaBreached ? "text-[var(--danger)]" : "text-[var(--success)]"}`}>
-                                {t.slaBreached ? "Breached" : "Met"}
-                              </span>
-                            </td>
-                            <td className="py-1.5 px-3 text-right tabular-nums text-[var(--foreground)]">
-                              {t.resolutionHrs !== null ? `${t.resolutionHrs}h` : "-"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  {(isAggregated ? allMonths : [latest]).map(md => {
+                    if (!md.onCallTickets || md.onCallTickets.length === 0) return null;
+                    return (
+                      <div key={`oc-${md.month}`} className="mb-3">
+                        {isAggregated && (
+                          <div className="text-[11px] font-semibold text-[var(--oncall)] mb-1">{formatMonth(md.month)}</div>
+                        )}
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                          <table className="w-full text-[12px]">
+                            <thead>
+                              <tr className="bg-[var(--surface)]">
+                                <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
+                                <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
+                                <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Priority</th>
+                                <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">SLA</th>
+                                <th className="py-1.5 px-3 text-right text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Time</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {md.onCallTickets.map((t, i) => (
+                                <tr key={i} className="border-t border-[var(--border)]">
+                                  <td className="py-1.5 px-3 font-mono">
+                                    <a href={`${JIRA_BROWSE}/${t.key}`} target="_blank" rel="noopener noreferrer" className="text-[var(--oncall)] hover:underline">{t.key}</a>
+                                  </td>
+                                  <td className="py-1.5 px-3 text-[var(--foreground)] truncate max-w-[200px]">{t.summary}</td>
+                                  <td className="py-1.5 px-3 text-center">
+                                    <span className={`text-[10px] font-bold ${
+                                      t.priority === "Highest" ? "text-[var(--danger)]" :
+                                      t.priority === "High" ? "text-[var(--warning)]" :
+                                      "text-[var(--muted)]"
+                                    }`}>{t.priority}</span>
+                                  </td>
+                                  <td className="py-1.5 px-3 text-center">
+                                    <span className={`text-[10px] font-bold ${t.slaBreached ? "text-[var(--danger)]" : "text-[var(--success)]"}`}>
+                                      {t.slaBreached ? "Breached" : "Met"}
+                                    </span>
+                                  </td>
+                                  <td className="py-1.5 px-3 text-right tabular-nums text-[var(--foreground)]">
+                                    {t.resolutionHrs !== null ? `${t.resolutionHrs}h` : "-"}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

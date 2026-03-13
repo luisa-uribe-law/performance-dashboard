@@ -113,5 +113,31 @@ export interface PerformanceData {
   yshubBugs: BugTicket[];
 }
 
+export interface LeakageBug {
+  key: string;
+  summary: string;
+  createdDate: string;   // ISO date
+  daysSinceDeployment: number;
+}
+
+export interface LeakageIntegration {
+  key: string;
+  summary: string;
+  assignee: string;
+  deployedDate: string;  // ISO date (statuscategorychangedate)
+  bugs: LeakageBug[];
+}
+
+export interface LeakageData {
+  integrations: LeakageIntegration[];
+  totalIntegrations: number;
+  integrationsWithBugs: number;
+  totalBugs: number;
+  medianLeakageDays: number | null;
+  avgLeakageDays: number | null;
+  bugFreeRate: number;   // % of integrations with zero bugs
+  skippedNonRoster: number; // tasks excluded because assignee is not in the team roster
+}
+
 export type GroupFilter = "all" | Squad;
 

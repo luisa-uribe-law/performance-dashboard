@@ -8,13 +8,14 @@ import Header, { DateRange, DateMode } from "@/components/layout/Header";
 import KpiCard from "@/components/shared/KpiCard";
 import DevProfileModal from "@/components/shared/DevProfileModal";
 import IntegrationBugsView from "@/components/shared/IntegrationBugsView";
+import BugLeakageView from "@/components/shared/BugLeakageView";
 import MethodologyModal from "@/components/shared/MethodologyModal";
 import IntegrationPanel from "@/components/sections/IntegrationPanel";
 import OnCallPanel from "@/components/sections/OnCallPanel";
 import Insights from "@/components/sections/Insights";
 import TeamRoster from "@/components/sections/TeamRoster";
 
-type View = "dashboard" | "bugs";
+type View = "dashboard" | "bugs" | "leakage";
 
 function computeActiveMonths(dr: DateRange, allMonths: string[]): string[] {
   if (dr.mode === "month") return [dr.selectedMonth].filter(Boolean);
@@ -220,6 +221,8 @@ export default function Dashboard() {
         onDevSelect={setSelectedDev}
         onBugsView={() => setView(view === "bugs" ? "dashboard" : "bugs")}
         bugsViewActive={view === "bugs"}
+        onLeakageView={() => setView(view === "leakage" ? "dashboard" : "leakage")}
+        leakageViewActive={view === "leakage"}
       />
 
       {/* ── Sticky Date Banner ── */}
@@ -307,9 +310,15 @@ export default function Dashboard() {
               <TeamRoster developers={aggregatedDevs} onDevClick={setSelectedDev} />
             </div>
           </div>
-        ) : (
+        ) : view === "bugs" ? (
           <IntegrationBugsView
             bugs={activeBugs}
+            onBack={() => setView("dashboard")}
+          />
+        ) : (
+          <BugLeakageView
+            from={activeMonths[0] || selectedMonth}
+            to={activeMonths[activeMonths.length - 1] || selectedMonth}
             onBack={() => setView("dashboard")}
           />
         )}

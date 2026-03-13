@@ -97,7 +97,12 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
         bugs: bugs.sort((a, b) => b.month.localeCompare(a.month)),
       });
     }
-    return result.sort((a, b) => b.bugs.length - a.bugs.length);
+    return result.sort((a, b) => {
+      const aUnknown = a.provider === "Unknown" ? 1 : 0;
+      const bUnknown = b.provider === "Unknown" ? 1 : 0;
+      if (aUnknown !== bUnknown) return aUnknown - bUnknown;
+      return b.bugs.length - a.bugs.length;
+    });
   }, [filtered]);
 
   return (

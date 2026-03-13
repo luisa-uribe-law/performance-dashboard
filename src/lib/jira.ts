@@ -432,8 +432,18 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     devData[entry.displayName] = { demTasks: [], yshubTickets: [], sbxBugs: [], prodBugs: [], yshubBugsByRP: [] };
   }
 
+  // Helper: check if the ticket's actual completion date falls within the requested month.
+  // The DURING clause can return tickets whose statuscategorychangedate is outside the month.
+  function completedInMonth(issue: JiraIssue): boolean {
+    const raw = getFieldStr(issue, "statuscategorychangedate") || getFieldStr(issue, "resolutiondate");
+    if (!raw) return true; // no date available, keep it
+    const completedMonth = parseJiraDate(raw).toISOString().slice(0, 7); // "2026-02"
+    return completedMonth === month;
+  }
+
   let unmatchedDem = 0;
   for (const issue of demTasks) {
+    if (!completedInMonth(issue)) continue;
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {
@@ -445,6 +455,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
 
   let unmatchedYshub = 0;
   for (const issue of yshubTickets) {
+    if (!completedInMonth(issue)) continue;
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {
@@ -456,6 +467,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
 
   // SBX bugs: only count those assigned to roster members
   for (const issue of sbxBugsRaw) {
+    if (!completedInMonth(issue)) continue;
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {
@@ -466,6 +478,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   // PROD bugs count: from YSHUB tickets with Responsible Party (any type, for KPI count)
   let totalProdBugs = 0;
   for (const issue of prodBugsRaw) {
+    if (!completedInMonth(issue)) continue;
     const responsibleName = getResponsibleParty(issue);
     if (!responsibleName) continue;
     const entry = resolveJiraName(responsibleName);
@@ -605,7 +618,9 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   }
 
   // ── YSHUB Bug-type issues (project-wide, grouped by provider/env) ──
-  const yshubBugs: BugTicket[] = yshubBugsRaw.map(b => ({
+  // Filter to only bugs whose completion date matches the requested month
+  const filteredYshubBugsRaw = yshubBugsRaw.filter(completedInMonth);
+  const yshubBugs: BugTicket[] = filteredYshubBugsRaw.map(b => ({
     key: getIssueKey(b),
     summary: getFieldStr(b, "summary"),
     env: getBugEnvironment(b),
@@ -615,8 +630,10 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   }));
 
   // ── On-Call priority breakdown (uses all closed tickets for team-level view) ──
+  // Filter to only tickets whose completion date matches the requested month
+  const filteredYshubAllClosed = yshubAllClosed.filter(completedInMonth);
   const byPriority: Record<string, JiraIssue[]> = {};
-  for (const t of yshubAllClosed) {
+  for (const t of filteredYshubAllClosed) {
     const p = (getField(t, "priority") as { name?: string })?.name || "Low";
     if (!byPriority[p]) byPriority[p] = [];
     byPriority[p].push(t);
@@ -663,6 +680,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   let yshubBugsTeam = 0;
   let yshubBugsUnknown = 0;
   for (const issue of prodBugsRaw) {
+    if (!completedInMonth(issue)) continue;
     const responsibleName = getResponsibleParty(issue);
     if (!responsibleName) continue;
     const entry = resolveJiraName(responsibleName);
@@ -683,7 +701,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     yshubBugsMerchant,
     yshubBugsTeam,
     yshubBugsUnknown,
-    ticketsResolved: yshubAllClosed.length, // All YSHUB tickets closed (incl. Canceled + Bugs)
+    ticketsResolved: filteredYshubAllClosed.length, // All YSHUB tickets closed (incl. Canceled + Bugs)
     slaCompliancePct: teamSlaTotal > 0 ? Math.round((teamSlaOk / teamSlaTotal) * 1000) / 10 : 0,
     medianResolutionDays: allHours.length > 0 ? Math.round(median(allHours) / 24 * 10) / 10 : 0,
     activeDevelopers,
@@ -691,7 +709,8 @@ export async function syncMonth(month: string): Promise<SyncResult> {
 
   // ── Bug-only SLA analysis ──
   // Qualifying: Production bugs (any reporter) + non-production bugs (only external reporters)
-  const qualifyingBugs = yshubBugsForSla.filter(issue => {
+  const filteredYshubBugsForSla = yshubBugsForSla.filter(completedInMonth);
+  const qualifyingBugs = filteredYshubBugsForSla.filter(issue => {
     if (isBugProd(issue)) return true; // Production: all reporters
     const reporter = getReporterName(issue);
     return !isInternalReporter(reporter, roster); // Non-prod: only external (merchant/company)
@@ -747,7 +766,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     debug: {
       totalDemRaw: demTasks.length,
       totalYshubRaw: yshubTickets.length,
-      totalYshubAllClosed: yshubAllClosed.length,
+      totalYshubAllClosed: filteredYshubAllClosed.length,
       totalSbxBugsRaw: sbxBugsRaw.length,
       totalProdBugsRaw: prodBugsRaw.length,
       totalYshubBugsRaw: yshubBugsRaw.length,

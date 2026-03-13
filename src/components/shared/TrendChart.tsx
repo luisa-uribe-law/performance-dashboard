@@ -10,7 +10,7 @@ interface TrendChartProps {
   data: any[];
   xKey: string;
   lines?: { key: string; color: string; name: string }[];
-  bars?: { key: string; color: string; name: string }[];
+  bars?: { key: string; color: string; name: string; stackId?: string }[];
   areas?: { key: string; color: string; name: string }[];
   height?: number;
   yDomain?: [number, number];
@@ -80,14 +80,15 @@ export default function TrendChart({
             return isPartial ? `${label} (in progress)` : label;
           }} cursor={{ fill: "rgba(62, 79, 224, 0.1)" }} />
           {bars.map(b => (
-            <Bar key={b.key} dataKey={b.key} fill={resolveColor(b.color)} name={b.name} radius={[6, 6, 0, 0]} animationDuration={800}
+            <Bar key={b.key} dataKey={b.key} fill={resolveColor(b.color)} name={b.name} stackId={b.stackId} radius={b.stackId ? [0, 0, 0, 0] : [6, 6, 0, 0]} animationDuration={800}
               fillOpacity={1}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               shape={(props: any) => {
                 const isPartial = barData[props.index]?._isPartial;
                 const { x, y, width, height: h } = props;
+                const r = b.stackId ? 0 : 6;
                 return (
-                  <rect x={x} y={y} width={width} height={h} rx={6} ry={6}
+                  <rect x={x} y={y} width={width} height={h} rx={r} ry={r}
                     fill={resolveColor(b.color)}
                     fillOpacity={isPartial ? 0.35 : 1}
                     strokeDasharray={isPartial ? "4 2" : undefined}

@@ -14,6 +14,7 @@ interface BugRow {
   summary: string;
   provider: string;
   env: "PROD" | "SBX" | "STG";
+  reportingType: "Merchant" | "Team" | "Unknown";
   month: string;
 }
 
@@ -30,12 +31,19 @@ const ENV_COLORS: Record<string, string> = {
   STG: "var(--accent)",
 };
 
+const RT_COLORS: Record<string, string> = {
+  Merchant: "#f59e0b",
+  Team: "#6366f1",
+  Unknown: "#6b7280",
+};
+
 function collectBugs(bugs: BugTicket[]): BugRow[] {
   return bugs.map(bug => ({
     key: bug.key,
     summary: bug.summary,
     provider: bug.provider || "Unknown",
     env: bug.env,
+    reportingType: bug.reportingType || "Unknown",
     month: bug.month || "",
   }));
 }
@@ -55,6 +63,14 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
     const counts: Record<string, number> = {};
     for (const b of allBugs) {
       counts[b.env] = (counts[b.env] || 0) + 1;
+    }
+    return counts;
+  }, [allBugs]);
+
+  const rtCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const b of allBugs) {
+      counts[b.reportingType] = (counts[b.reportingType] || 0) + 1;
     }
     return counts;
   }, [allBugs]);
@@ -142,8 +158,8 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
         </select>
       </div>
 
-      {/* Counts */}
-      <div className="flex items-center gap-3">
+      {/* Counts + legend */}
+      <div className="flex items-center gap-4 flex-wrap">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-center">
           <div className="text-2xl font-bold text-[var(--oncall)]">{filtered.length}</div>
           <div className="text-[10px] uppercase tracking-wider text-[var(--muted)] mt-0.5">
@@ -152,6 +168,20 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
         </div>
         <div className="text-xs text-[var(--muted)]">
           {groups.length} provider{groups.length !== 1 ? "s" : ""}
+        </div>
+        <div className="flex-1" />
+        <div className="flex items-center gap-3 text-[10px] text-[var(--muted)]">
+          <span className="uppercase tracking-wider font-medium">Reported by</span>
+          {(["Merchant", "Team", "Unknown"] as const).map(rt => {
+            const count = rtCounts[rt] || 0;
+            if (count === 0) return null;
+            return (
+              <span key={rt} className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: RT_COLORS[rt] }} />
+                {rt} ({count})
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -168,6 +198,13 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
           const prodCount = g.bugs.filter(b => b.env === "PROD").length;
           const sbxCount = g.bugs.filter(b => b.env === "SBX").length;
           const stgCount = g.bugs.filter(b => b.env === "STG").length;
+          const merchantCount = g.bugs.filter(b => b.reportingType === "Merchant").length;
+          const teamCount = g.bugs.filter(b => b.reportingType === "Team").length;
+          const unknownRtCount = g.bugs.filter(b => b.reportingType === "Unknown").length;
+          const maxBugs = groups[0]?.bugs.length || 1;
+          const barPct = Math.max(4, (g.bugs.length / maxBugs) * 100);
+          const merchantPct = g.bugs.length > 0 ? (merchantCount / g.bugs.length) * 100 : 0;
+          const teamPct = g.bugs.length > 0 ? (teamCount / g.bugs.length) * 100 : 0;
           return (
             <div key={g.provider} className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
               <button
@@ -180,8 +217,22 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="flex-1 text-sm font-semibold text-[var(--foreground)]">{g.provider}</span>
-                <div className="flex gap-1.5">
+                <span className="w-32 shrink-0 text-sm font-semibold text-[var(--foreground)] truncate">{g.provider}</span>
+                {/* Stacked bar by reporting type */}
+                <div className="flex-1 h-5 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]" style={{ maxWidth: `${barPct}%` }}>
+                  <div className="h-full flex">
+                    {merchantCount > 0 && (
+                      <div className="h-full" style={{ width: `${merchantPct}%`, backgroundColor: RT_COLORS.Merchant }} title={`Merchant: ${merchantCount}`} />
+                    )}
+                    {teamCount > 0 && (
+                      <div className="h-full" style={{ width: `${teamPct}%`, backgroundColor: RT_COLORS.Team }} title={`Team: ${teamCount}`} />
+                    )}
+                    {unknownRtCount > 0 && (
+                      <div className="h-full" style={{ width: `${100 - merchantPct - teamPct}%`, backgroundColor: RT_COLORS.Unknown }} title={`Unknown: ${unknownRtCount}`} />
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-1.5 shrink-0">
                   {prodCount > 0 && (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--danger) 15%, transparent)", color: "var(--danger)" }}>
                       {prodCount} PROD
@@ -198,7 +249,7 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-bold text-[var(--muted)]">{g.bugs.length}</span>
+                <span className="text-[11px] font-bold text-[var(--muted)] shrink-0">{g.bugs.length}</span>
               </button>
 
               {isOpen && (
@@ -209,6 +260,7 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
                         <th className="py-1.5 px-4 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Ticket</th>
                         <th className="py-1.5 px-3 text-left text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Summary</th>
                         <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Env</th>
+                        <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Reported By</th>
                         {hasMultipleMonths && (
                           <th className="py-1.5 px-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">Month</th>
                         )}
@@ -236,6 +288,14 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
                                 style={{ backgroundColor: `color-mix(in srgb, ${color} 20%, transparent)`, color }}
                               >
                                 {bug.env}
+                              </span>
+                            </td>
+                            <td className="py-1.5 px-3 text-center">
+                              <span
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                                style={{ backgroundColor: `color-mix(in srgb, ${RT_COLORS[bug.reportingType]} 20%, transparent)`, color: RT_COLORS[bug.reportingType] }}
+                              >
+                                {bug.reportingType}
                               </span>
                             </td>
                             {hasMultipleMonths && (

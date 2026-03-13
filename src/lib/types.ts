@@ -12,6 +12,10 @@ export interface MonthlyTeamMetrics {
   onTimeDeliveryPct: number;
   prodBugs: number;
   sbxBugs: number;
+  // YSHUB Bug-type issues by reporting type (for chart breakdown)
+  yshubBugsMerchant: number;
+  yshubBugsTeam: number;
+  yshubBugsUnknown: number;
   ticketsResolved: number;
   slaCompliancePct: number;
   medianResolutionDays: number;
@@ -32,6 +36,7 @@ export interface BugTicket {
   env: "PROD" | "SBX" | "STG";
   provider: string;   // from Jira "Providers" field (customfield_10229)
   source: "DEM" | "YSHUB"; // which project this bug came from
+  reportingType: "Merchant" | "Team" | "Unknown"; // from Jira "Reporting Type" (customfield_11877)
   month?: string;      // "2026-02" — set when aggregated across months
 }
 

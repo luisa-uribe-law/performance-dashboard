@@ -320,22 +320,25 @@ The Integrations team has ~26 developers organized into:
 ### On-Call Ticket Weights (by Jira priority)
 | Priority | Weight | SLA Target |
 |----------|--------|------------|
-| Highest | 3 | 24 hours |
-| High | 2 | 48 hours |
-| Medium | 1.5 | 5 days |
-| Low | 1 | 10 days |
+| Highest | 3 | 72h (3 days) |
+| High | 2 | 48h (2 days) |
+| Medium | 1.5 | 72h (3 days) |
+| Low | 1 | 120h (5 days) |
 
 **Weighted Tasks (WT)** = sum of all ticket weights for a developer. Allows fair comparison regardless of ticket type or complexity.
 
 ## Metrics Definitions
 - **DEM Tasks**: Epics + standalone Stories (excl. Dev Validation) + Tech Debt that reached Done or Implementation Complete
-- **On-Call Tickets**: YSHUB tickets (component=Integration) resolved by the developer
+- **On-Call Tickets (Team)**: Total YSHUB tickets (component=Integration) that reached Done/Resolved/Closed/Canceled/Deployment in Queue — includes ALL types and Canceled tickets for the team-level count
+- **On-Call Tickets (per Dev)**: Excludes Canceled tickets at the individual level — only Done/Resolved/Closed/Deployment in Queue
 - **Weighted Tasks (WT)**: Complexity-adjusted total work output (DEM weights + YSHUB weights)
 - **On-Time Delivery (OTD%)**: % of DEM tasks completed by their due date
-- **PROD Bugs**: Production bugs attributed via Jira "Responsible Party of the Bug" field
-- **SBX Bugs**: In-Sprint Bugs from DEM board (found during QA/testing)
-- **SLA Compliance**: % of YSHUB tickets resolved within SLA target (a ticket is considered "done" once it reaches "Deployment in Queue" status)
-- **Median Resolution**: Median elapsed time from ticket creation to reaching "Deployment in Queue" status
+- **PROD Bugs**: Production bugs attributed via Jira "Responsible Party of the Bug" field (customfield_14104)
+- **SBX Bugs**: In-Sprint Bugs from DEM board (found during QA/testing), attributed by assignee
+- **YSHUB Bugs**: Bug-type issues from YSHUB, shown in the Bugs view grouped by provider, with "Reporting Type" (Merchant/Team) from customfield_11877
+- **SLA Compliance**: % of YSHUB tickets resolved within SLA target. Definition of done = "Deployment in Queue" status. Uses Jira's built-in "Time to Resolution" SLA field, with fallback to created→statuscategorychangedate
+- **Median Resolution**: Median elapsed time from SLA clock or from created to Deployment in Queue
+- **Bugs-Only SLA**: Sub-analysis of SLA considering only Bug-type YSHUB tickets. Includes: production bugs (any reporter) + non-production bugs only if reported by merchant/company (external reporter)
 
 ## Available Data
 Months with data: ${availableMonths.join(", ")}

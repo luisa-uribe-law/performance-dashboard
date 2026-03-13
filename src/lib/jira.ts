@@ -188,7 +188,7 @@ async function fetchProdBugs(startDate: string, endDate: string): Promise<JiraIs
   // YSHUB bugs with "Responsible Party of the Bug" (customfield_14104) filled
   return jiraSearchAll(
     `project = YSHUB AND component = Integration AND status changed to (Done, Resolved, Closed) DURING ("${startDate}", "${endDate}") AND cf[14104] is not EMPTY`,
-    "summary,assignee,priority,customfield_14104"
+    "summary,assignee,priority,customfield_14104,customfield_11877"
   );
 }
 
@@ -196,7 +196,7 @@ async function fetchYshubBugs(startDate: string, endDate: string): Promise<JiraI
   // ONLY Bug-type issues from YSHUB, with Provider, Environment, and Responsible Party fields
   return jiraSearchAll(
     `project = YSHUB AND issuetype = Bug AND component = Integration AND created >= "${startDate}" AND created <= "${endDate}"`,
-    "summary,priority,status,customfield_10229,customfield_10196,customfield_14104"
+    "summary,priority,status,customfield_10229,customfield_10196,customfield_14104,customfield_11877,issuetype"
   );
 }
 
@@ -333,6 +333,14 @@ function getResponsibleParty(issue: JiraIssue): string | null {
 function getBugProvider(issue: JiraIssue): string {
   const provider = getField(issue, "customfield_10229") as { value?: string } | null;
   return provider?.value || "Unknown";
+}
+
+function getReportingType(issue: JiraIssue): "Merchant" | "Team" | "Unknown" {
+  const rt = getField(issue, "customfield_11877") as { value?: string } | null;
+  if (!rt?.value) return "Unknown";
+  if (rt.value === "Merchant") return "Merchant";
+  if (rt.value === "Team") return "Team";
+  return "Unknown";
 }
 
 function getBugEnvironment(issue: JiraIssue): "PROD" | "SBX" | "STG" {
@@ -559,6 +567,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
         env: "SBX" as const,
         provider: "",
         source: "DEM" as const,
+        reportingType: "Team" as const,
       })),
       ...dd.yshubBugsByRP.map(b => ({
         key: getIssueKey(b),
@@ -566,6 +575,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
         env: getBugEnvironment(b),
         provider: getBugProvider(b),
         source: "YSHUB" as const,
+        reportingType: getReportingType(b),
       })),
     ];
 
@@ -606,6 +616,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     env: getBugEnvironment(b),
     provider: getBugProvider(b),
     source: "YSHUB" as const,
+    reportingType: getReportingType(b),
   }));
 
   // ── On-Call priority breakdown (uses all closed tickets for team-level view) ──
@@ -652,6 +663,21 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     }
   }
 
+  // ── PROD bug reporting type counts (only bugs attributed to team via Responsible Party) ──
+  let yshubBugsMerchant = 0;
+  let yshubBugsTeam = 0;
+  let yshubBugsUnknown = 0;
+  for (const issue of prodBugsRaw) {
+    const responsibleName = getResponsibleParty(issue);
+    if (!responsibleName) continue;
+    const entry = resolveJiraName(responsibleName);
+    if (!entry || !devData[entry.displayName]) continue; // only count if attributed to a roster member
+    const rt = getReportingType(issue);
+    if (rt === "Merchant") yshubBugsMerchant++;
+    else if (rt === "Team") yshubBugsTeam++;
+    else yshubBugsUnknown++;
+  }
+
   const teamMetrics: MonthlyTeamMetrics = {
     month,
     tasksCompleted: totalTasks,
@@ -659,6 +685,9 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     onTimeDeliveryPct: otdDenominator > 0 ? Math.round(otdNumerator / otdDenominator) : 0,
     prodBugs: totalProdBugs,
     sbxBugs: totalSbxBugs,
+    yshubBugsMerchant,
+    yshubBugsTeam,
+    yshubBugsUnknown,
     ticketsResolved: yshubAllClosed.length, // All YSHUB tickets closed (incl. Canceled + Bugs)
     slaCompliancePct: teamSlaTotal > 0 ? Math.round((teamSlaOk / teamSlaTotal) * 1000) / 10 : 0,
     medianResolutionDays: allHours.length > 0 ? Math.round(median(allHours) / 24 * 10) / 10 : 0,

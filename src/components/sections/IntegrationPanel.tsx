@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DeveloperMonthly, MonthlyTeamMetrics } from "@/lib/types";
 import { formatMonth } from "@/lib/format";
 import TrendChart from "../shared/TrendChart";
 import SectionCard from "../shared/SectionCard";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList,
+} from "recharts";
 import * as XLSX from "xlsx";
+
+const RT_COLORS = { Merchant: "#f59e0b", Team: "#6366f1", Unknown: "#6b7280" };
 
 interface Props {
   teamData: MonthlyTeamMetrics[];
@@ -165,24 +170,139 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
               <MiniStat label="vs Last Month" value={prev ? `${latest.prodBugs - prev.prodBugs >= 0 ? "+" : ""}${latest.prodBugs - prev.prodBugs} PROD` : "-"} color={prev && latest.prodBugs <= prev.prodBugs ? "var(--success)" : "var(--danger)"} />
             </div>
           )}
-          <TrendChart
-            data={teamData}
-            xKey="month"
-            bars={[
-              { key: "prodBugs", color: "var(--danger)", name: "PROD" },
-              { key: "sbxBugs", color: "var(--warning)", name: "SBX" },
-            ]}
-            height={140}
-            partialLast={isPartialMonth}
-          />
-          {/* Devs with most bugs */}
+          {(() => {
+            // Build flat data: one entry per month per bar type (In-Sprint / PROD)
+            const chartData = teamData.flatMap(t => {
+              const monthLabel = formatMonth(t.month);
+              const isPartial = isPartialMonth && t.month === teamData[teamData.length - 1]?.month;
+              const label = isPartial ? `${monthLabel}*` : monthLabel;
+              return [
+                {
+                  xKey: `${t.month}-insprint`,
+                  monthLabel: label,
+                  barType: "In-Sprint",
+                  merchant: 0,
+                  team: t.sbxBugs,
+                  unknown: 0,
+                  total: t.sbxBugs,
+                  isPartial,
+                },
+                {
+                  xKey: `${t.month}-prod`,
+                  monthLabel: label,
+                  barType: "PROD",
+                  merchant: t.yshubBugsMerchant,
+                  team: t.yshubBugsTeam,
+                  unknown: t.yshubBugsUnknown,
+                  total: t.yshubBugsMerchant + t.yshubBugsTeam + t.yshubBugsUnknown,
+                  isPartial,
+                },
+              ];
+            });
+
+            // Custom label for totals on top of stacked bars
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const renderTotalLabel = (props: any) => {
+              const { x, y, width, index } = props;
+              const entry = chartData[index];
+              if (!entry || entry.total === 0) return null;
+              return (
+                <text x={x + width / 2} y={y - 4} textAnchor="middle" fill="#B0B4D0" fontSize={10} fontWeight="bold">
+                  {entry.total}
+                </text>
+              );
+            };
+
+            // Custom x-axis tick: show month on first of pair, bar type on second line
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const renderXTick = (props: any) => {
+              const { x, y, index } = props;
+              const entry = chartData[index];
+              if (!entry) return <g />;
+              const isFirst = index % 2 === 0;
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  {isFirst && (
+                    <text x={20} y={22} textAnchor="middle" fill="#B0B4D0" fontSize={10}>
+                      {entry.monthLabel}
+                    </text>
+                  )}
+                  <text x={0} y={10} textAnchor="middle" fill="#888" fontSize={9}>
+                    {entry.barType}
+                  </text>
+                </g>
+              );
+            };
+
+            return (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={chartData} margin={{ top: 15, right: 10, left: -10, bottom: 22 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#353858" vertical={false} />
+                  <XAxis dataKey="xKey" tick={renderXTick} tickLine={false} axisLine={{ stroke: "#333658" }} interval={0} />
+                  <YAxis tick={{ fill: "#B0B4D0", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: "#252838", border: "1px solid #454870", borderRadius: 10, fontSize: 12, color: "#fff" }}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    labelFormatter={(_: any, payload: any) => {
+                      const entry = payload?.[0]?.payload;
+                      return entry ? `${entry.monthLabel} — ${entry.barType}` : "";
+                    }}
+                    cursor={{ fill: "rgba(62, 79, 224, 0.1)" }}
+                  />
+                  <Bar dataKey="merchant" stackId="a" name="Merchant" fill={RT_COLORS.Merchant} animationDuration={800}>
+                    {chartData.map((d, i) => (
+                      <Cell key={i} fillOpacity={d.isPartial ? 0.35 : 1} />
+                    ))}
+                  </Bar>
+                  <Bar dataKey="team" stackId="a" name="Team" fill={RT_COLORS.Team} animationDuration={800}>
+                    {chartData.map((d, i) => (
+                      <Cell key={i} fillOpacity={d.isPartial ? 0.35 : 1} />
+                    ))}
+                  </Bar>
+                  <Bar dataKey="unknown" stackId="a" name="Unknown" fill={RT_COLORS.Unknown} radius={[4, 4, 0, 0]} animationDuration={800}>
+                    {chartData.map((d, i) => (
+                      <Cell key={i} fillOpacity={d.isPartial ? 0.35 : 1} />
+                    ))}
+                    <LabelList content={renderTotalLabel} position="top" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            );
+          })()}
+          {/* Devs with most bugs — stacked by reporting type */}
           {sortedByBugs.length > 0 && (
             <div>
               <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Bugs by Developer</div>
               <div className="space-y-0 max-h-[200px] overflow-y-auto pr-1">
-                {sortedByBugs.map(d => (
-                  <BarRow key={d.developer} name={d.developer} value={d.prodBugs + d.sbxBugs} label=" bugs" max={maxBugs} color="var(--danger)" onClick={() => onDevClick(d.developer)} />
-                ))}
+                {sortedByBugs.map(d => {
+                  const total = d.prodBugs + d.sbxBugs;
+                  const pct = Math.min(100, (total / maxBugs) * 100);
+                  const merchantCount = d.bugs.filter(b => b.reportingType === "Merchant").length;
+                  const teamCount = d.bugs.filter(b => b.reportingType === "Team").length;
+                  const unknownCount = d.bugs.filter(b => b.reportingType === "Unknown").length;
+                  const merchantPct = total > 0 ? (merchantCount / total) * 100 : 0;
+                  const teamPct = total > 0 ? (teamCount / total) * 100 : 0;
+                  return (
+                    <button key={d.developer} onClick={() => onDevClick(d.developer)} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
+                      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{d.developer}</span>
+                      <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
+                        <div className="h-full flex animate-grow" style={{ width: `${pct}%` }}>
+                          {merchantCount > 0 && <div className="h-full" style={{ width: `${merchantPct}%`, backgroundColor: "#f59e0b" }} title={`Merchant: ${merchantCount}`} />}
+                          {teamCount > 0 && <div className="h-full" style={{ width: `${teamPct}%`, backgroundColor: "#6366f1" }} title={`Team: ${teamCount}`} />}
+                          {unknownCount > 0 && <div className="h-full" style={{ width: `${100 - merchantPct - teamPct}%`, backgroundColor: "#6b7280" }} title={`Unknown: ${unknownCount}`} />}
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-bold w-14 text-right tabular-nums whitespace-nowrap" style={{ color: "var(--danger)" }}>{total} bugs</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Legend */}
+              <div className="flex items-center gap-3 mt-2 text-[9px] text-[var(--muted)]">
+                <span className="uppercase tracking-wider font-medium">Reported by:</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: "#f59e0b" }} />Merchant</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: "#6366f1" }} />Team</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: "#6b7280" }} />Unknown</span>
               </div>
             </div>
           )}

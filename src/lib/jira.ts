@@ -125,16 +125,17 @@ function getActiveRoster(month: string): RosterEntry[] {
 // ── Data fetching ──
 
 async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIssue[]> {
-  // We require both:
-  //   1. status changed to Done/Implementation Complete during the period
-  //   2. status is STILL in Done/Implementation Complete (not reverted)
+  // Fetch tasks that reached Done/Implementation Complete during the period.
+  // We do NOT require the ticket to still be in that status — tickets often move
+  // forward to "Ready for Release" after completion. The DURING clause confirms
+  // they passed through Done/IC, and completedInMonth() filters by actual date.
   const epics = await jiraSearchAll(
-    `project = DEM AND issuetype = Epic AND status in (Done, "Implementation Complete") AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = Epic AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
   );
 
   const stories = await jiraSearchAll(
-    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status in (Done, "Implementation Complete") AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,parent,statuscategorychangedate"
   );
 
@@ -144,7 +145,7 @@ async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIs
   });
 
   const techDebt = await jiraSearchAll(
-    `project = DEM AND issuetype = "Tech Debt" AND status in (Done, "Implementation Complete") AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = "Tech Debt" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
   );
 
@@ -179,7 +180,7 @@ async function fetchYshubBugsForSla(startDate: string, endDate: string): Promise
 
 async function fetchSbxBugs(startDate: string, endDate: string): Promise<JiraIssue[]> {
   return jiraSearchAll(
-    `project = DEM AND issuetype = "In-Sprint Bug" AND status in (Done, "Implementation Complete") AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = "In-Sprint Bug" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,parent"
   );
 }

@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
     //    Standalone Stories (no Epic Link) = independent work items
     //    Tech Debt = maintenance/improvement tasks
     //    Excludes sub-stories that belong to an Epic (those are implementation tasks, not integrations)
-    const duringClause = `status in (Done, "Implementation Complete") AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`;
+    const duringClause = `status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`;
     const sharedFields = "summary,assignee,statuscategorychangedate";
 
     const [epics, standaloneStories, techDebt] = await Promise.all([

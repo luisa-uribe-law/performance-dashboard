@@ -140,9 +140,11 @@ export async function GET(req: NextRequest) {
       demMap.set(key, { key, summary, assignee, deployedDate });
     }
 
-    // 2. Fetch YSHUB bugs with parent pointing to any DEM ticket
+    // 2. Fetch YSHUB bugs with triage completed (Responsible Party, Responsible, Parent, Context all filled)
+    //    No date filter on bugs — we want ALL bugs linked to integrations in our period,
+    //    even if the bug was reported months after deployment
     const yshubBugs = await jiraSearchAll(
-      `project = YSHUB AND issuetype = Bug AND component = Integration AND parent is not EMPTY`,
+      `project = YSHUB AND issuetype = Bug AND component = Integration AND parent is not EMPTY AND "Responsible Party of the Bug" is not EMPTY AND Responsible is not EMPTY AND cf[14137] is not EMPTY`,
       "summary,parent,created"
     );
 

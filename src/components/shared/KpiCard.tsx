@@ -36,17 +36,22 @@ export default function KpiCard({ label, subtitle, value, suffix = "", prefix = 
   const deltaNum = delta !== null ? (Number.isInteger(delta) ? delta : +delta.toFixed(1)) : null;
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3.5 py-3.5 hover:border-[var(--border-light)] hover:bg-[var(--card-hover)] transition-all duration-200 min-w-0">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-secondary)] mb-0.5 truncate">{label}</div>
-      {subtitle && (
-        <div className="text-[9px] text-[var(--muted)] mb-2 leading-tight">{subtitle}</div>
-      )}
-      {!subtitle && <div className="mb-1.5" />}
-      <div className="flex items-end justify-between gap-1">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3.5 py-3.5 hover:border-[var(--border-light)] hover:bg-[var(--card-hover)] transition-all duration-200 min-w-0 flex flex-col">
+      {/* Label — fixed height */}
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-secondary)] truncate">{label}</div>
+      {/* Subtitle — fixed height area */}
+      <div className="text-[9px] text-[var(--muted)] leading-tight min-h-[22px] flex items-start">
+        {subtitle || ""}
+      </div>
+      {/* Value */}
+      <div className="mt-auto pt-1">
         <span className="text-2xl font-bold leading-none" style={{ color }}>
           {prefix}{displayVal}{suffix}
         </span>
-        {deltaNum !== null && (
+      </div>
+      {/* Delta — fixed height area */}
+      <div className="h-[18px] mt-1.5 flex items-center">
+        {deltaNum !== null ? (
           <div className={`flex items-center gap-0.5 text-[10px] font-semibold leading-none ${isPositive ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
             <svg className="w-3 h-3 shrink-0" viewBox="0 0 12 12" fill="none">
               {isPositive ? (
@@ -56,10 +61,10 @@ export default function KpiCard({ label, subtitle, value, suffix = "", prefix = 
               )}
             </svg>
             <span className="tabular-nums whitespace-nowrap">
-              {Math.abs(deltaNum)}{deltaLabel || suffix} vs prev
+              {Math.abs(deltaNum)}{deltaLabel || suffix} vs prev. month
             </span>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

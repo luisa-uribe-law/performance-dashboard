@@ -254,9 +254,9 @@ export default function Dashboard() {
 
             {/* ── KPI Cards ── */}
             {currentTeam && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in">
-                <div>
-                  <div className="section-label mb-2.5 flex items-center gap-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in items-stretch">
+                <div className="flex flex-col">
+                  <div className="section-label mb-2.5 h-[28px] flex items-center gap-2">
                     <span style={{ color: "var(--accent)" }}>Integration Requests</span>
                     <button
                       onClick={() => setHighlightsOpen(true)}
@@ -265,7 +265,7 @@ export default function Dashboard() {
                       Highlights
                     </button>
                   </div>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-2 flex-1">
                     <KpiCard label="Completed Tasks" subtitle="Integrations & features delivered" value={currentTeam.tasksCompleted} prevValue={prevTeam?.tasksCompleted} color="var(--accent)" deltaLabel=" tasks" />
                     <KpiCard label="Tasks / Developer" subtitle="Avg. per active developer" value={currentTeam.tasksPerDeveloper} prevValue={prevTeam?.tasksPerDeveloper} color="var(--accent)" />
                     <KpiCard label="On-Time Delivery" subtitle="% delivered by deadline" value={currentTeam.onTimeDeliveryPct} suffix="%" prevValue={prevTeam?.onTimeDeliveryPct} color="var(--accent)" deltaLabel="pp" />
@@ -273,14 +273,14 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div>
-                  <div className="section-label mb-2.5">
+                <div className="flex flex-col">
+                  <div className="section-label mb-2.5 h-[28px] flex items-center">
                     <span style={{ color: "var(--oncall)" }}>On-Call Support</span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 flex-1">
                     <KpiCard label="Tickets Resolved" subtitle="Total support tickets closed" value={currentTeam.ticketsResolved} prevValue={prevTeam?.ticketsResolved} color="var(--oncall)" deltaLabel=" tickets" />
-                    <KpiCard label="SLA Compliance" subtitle="% resolved within SLA (done = Deployment in Queue)" value={currentTeam.slaCompliancePct} suffix="%" prevValue={prevTeam?.slaCompliancePct} color="var(--oncall)" deltaLabel="pp" />
-                    <KpiCard label="Avg. Resolution Time" subtitle="Median time to Deployment in Queue" value={currentTeam.medianResolutionDays} suffix="d" prevValue={prevTeam?.medianResolutionDays} color="var(--oncall)" invertDelta deltaLabel="d" />
+                    <KpiCard label="SLA Compliance" subtitle="% resolved within SLA" value={currentTeam.slaCompliancePct} suffix="%" prevValue={prevTeam?.slaCompliancePct} color="var(--oncall)" deltaLabel="pp" />
+                    <KpiCard label="Avg. Resolution" subtitle="Median time to resolve" value={currentTeam.medianResolutionDays} suffix="d" prevValue={prevTeam?.medianResolutionDays} color="var(--oncall)" invertDelta deltaLabel="d" />
                   </div>
                 </div>
               </div>

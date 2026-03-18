@@ -116,28 +116,52 @@ export async function GET(req: NextRequest) {
     //    Standalone Stories (no Epic Link) = independent work items
     //    Tech Debt = maintenance/improvement tasks
     //    Excludes sub-stories that belong to an Epic (those are implementation tasks, not integrations)
-    //    Only "Done" counts as complete (from 2026-03-18 onwards).
-    //    Past months are frozen in cached JSON; dedup prevents double-counting.
-    const duringClause = `status changed to Done DURING ("${startDate}", "${endDate}")`;
+    //    Before 2026-03-18: IC + Done both count. From 2026-03-18: Done only.
+    //    Past months dedup prevents double-counting.
+    const DONE_ONLY_CUTOFF = "2026-03-18";
     const sharedFields = "summary,assignee,statuscategorychangedate";
 
-    const [epics, standaloneStories, techDebt] = await Promise.all([
-      jiraSearchAll(
-        `project = DEM AND issuetype = Epic AND ${duringClause}`,
-        sharedFields
-      ),
-      jiraSearchAll(
-        `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND ${duringClause}`,
-        sharedFields + ",parent"
-      ),
-      jiraSearchAll(
-        `project = DEM AND issuetype = "Tech Debt" AND ${duringClause}`,
-        sharedFields
-      ),
-    ]);
+    let epics: JiraIssue[] = [];
+    let rawStories: JiraIssue[] = [];
+    let techDebt: JiraIssue[] = [];
+
+    if (endDate < DONE_ONLY_CUTOFF) {
+      // Entire period before cutoff: IC + Done
+      const clause = `status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`;
+      [epics, rawStories, techDebt] = await Promise.all([
+        jiraSearchAll(`project = DEM AND issuetype = Epic AND ${clause}`, sharedFields),
+        jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND ${clause}`, sharedFields + ",parent"),
+        jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND ${clause}`, sharedFields),
+      ]);
+    } else if (startDate >= DONE_ONLY_CUTOFF) {
+      // Entire period after cutoff: Done only
+      const clause = `status changed to Done DURING ("${startDate}", "${endDate}")`;
+      [epics, rawStories, techDebt] = await Promise.all([
+        jiraSearchAll(`project = DEM AND issuetype = Epic AND ${clause}`, sharedFields),
+        jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND ${clause}`, sharedFields + ",parent"),
+        jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND ${clause}`, sharedFields),
+      ]);
+    } else {
+      // Period spans cutoff: split into before (IC+Done) and after (Done only)
+      const beforeClause = `status changed to (Done, "Implementation Complete") DURING ("${startDate}", "2026-03-17")`;
+      const afterClause = `status changed to Done DURING ("${DONE_ONLY_CUTOFF}", "${endDate}")`;
+      const [e1, s1, t1, e2, s2, t2] = await Promise.all([
+        jiraSearchAll(`project = DEM AND issuetype = Epic AND ${beforeClause}`, sharedFields),
+        jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND ${beforeClause}`, sharedFields + ",parent"),
+        jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND ${beforeClause}`, sharedFields),
+        jiraSearchAll(`project = DEM AND issuetype = Epic AND ${afterClause}`, sharedFields),
+        jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND ${afterClause}`, sharedFields + ",parent"),
+        jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND ${afterClause}`, sharedFields),
+      ]);
+      // Deduplicate by key
+      const seen = new Set<string>();
+      for (const i of [...e1, ...e2]) { const k = i.key || i.id; if (!seen.has(k)) { seen.add(k); epics.push(i); } }
+      for (const i of [...s1, ...s2]) { const k = i.key || i.id; if (!seen.has(k)) { seen.add(k); rawStories.push(i); } }
+      for (const i of [...t1, ...t2]) { const k = i.key || i.id; if (!seen.has(k)) { seen.add(k); techDebt.push(i); } }
+    }
 
     // Filter out Dev Validation stories
-    const validStories = standaloneStories.filter(s => {
+    const validStories = rawStories.filter(s => {
       const summary = typeof s.fields.summary === "string" ? s.fields.summary.toLowerCase() : "";
       return !summary.includes("dev validation");
     });

@@ -154,31 +154,53 @@ function getActiveRoster(month: string): RosterEntry[] {
 
 // ── Data fetching ──
 
-async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIssue[]> {
-  // From 2026-03-18 onwards, only "Done" counts as complete for DEM tasks.
-  // Historical tickets (Jan–Mar 17) that reached "Implementation Complete" are preserved
-  // in frozen cached JSON files and won't be re-queried.
-  // The pastDemKeys dedup in syncMonth() prevents double-counting if a ticket that was
-  // already counted (via IC) later transitions to Done.
-  const epics = await jiraSearchAll(
-    `project = DEM AND issuetype = Epic AND status changed to Done DURING ("${startDate}", "${endDate}")`,
-    "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
-  );
+// Cutoff date: before this, IC + Done both count. From this date onwards, only Done.
+const DONE_ONLY_CUTOFF = "2026-03-18";
 
-  const stories = await jiraSearchAll(
-    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to Done DURING ("${startDate}", "${endDate}")`,
-    "summary,status,assignee,issuelinks,duedate,parent,statuscategorychangedate"
-  );
+async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIssue[]> {
+  // Before 2026-03-18: "Implementation Complete" or "Done" both count as complete.
+  // From 2026-03-18 onwards: only "Done" counts.
+  // If a period spans the cutoff (e.g. March), we split into two sub-queries.
+
+  const epicFields = "summary,status,assignee,issuelinks,duedate,statuscategorychangedate";
+  const storyFields = epicFields + ",parent";
+
+  let epics: JiraIssue[] = [];
+  let stories: JiraIssue[] = [];
+  let techDebt: JiraIssue[] = [];
+
+  if (endDate < DONE_ONLY_CUTOFF) {
+    // Entire period before cutoff: IC + Done
+    epics = await jiraSearchAll(`project = DEM AND issuetype = Epic AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`, epicFields);
+    stories = await jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`, storyFields);
+    techDebt = await jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`, epicFields);
+  } else if (startDate >= DONE_ONLY_CUTOFF) {
+    // Entire period after cutoff: Done only
+    epics = await jiraSearchAll(`project = DEM AND issuetype = Epic AND status changed to Done DURING ("${startDate}", "${endDate}")`, epicFields);
+    stories = await jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to Done DURING ("${startDate}", "${endDate}")`, storyFields);
+    techDebt = await jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND status changed to Done DURING ("${startDate}", "${endDate}")`, epicFields);
+  } else {
+    // Period spans cutoff: split into before (IC+Done) and after (Done only)
+    const beforeEnd = "2026-03-17";
+    const [e1, s1, t1, e2, s2, t2] = await Promise.all([
+      jiraSearchAll(`project = DEM AND issuetype = Epic AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${beforeEnd}")`, epicFields),
+      jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${beforeEnd}")`, storyFields),
+      jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${beforeEnd}")`, epicFields),
+      jiraSearchAll(`project = DEM AND issuetype = Epic AND status changed to Done DURING ("${DONE_ONLY_CUTOFF}", "${endDate}")`, epicFields),
+      jiraSearchAll(`project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to Done DURING ("${DONE_ONLY_CUTOFF}", "${endDate}")`, storyFields),
+      jiraSearchAll(`project = DEM AND issuetype = "Tech Debt" AND status changed to Done DURING ("${DONE_ONLY_CUTOFF}", "${endDate}")`, epicFields),
+    ]);
+    // Deduplicate by key (a ticket could match both sub-periods)
+    const seen = new Set<string>();
+    for (const i of [...e1, ...e2]) { if (!seen.has(getIssueKey(i))) { seen.add(getIssueKey(i)); epics.push(i); } }
+    for (const i of [...s1, ...s2]) { if (!seen.has(getIssueKey(i))) { seen.add(getIssueKey(i)); stories.push(i); } }
+    for (const i of [...t1, ...t2]) { if (!seen.has(getIssueKey(i))) { seen.add(getIssueKey(i)); techDebt.push(i); } }
+  }
 
   const validStories = stories.filter(s => {
     const summary = getFieldStr(s, "summary").toLowerCase();
     return !summary.includes("dev validation");
   });
-
-  const techDebt = await jiraSearchAll(
-    `project = DEM AND issuetype = "Tech Debt" AND status changed to Done DURING ("${startDate}", "${endDate}")`,
-    "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
-  );
 
   return [...epics, ...validStories, ...techDebt];
 }
@@ -210,10 +232,21 @@ async function fetchYshubBugsForSla(startDate: string, endDate: string): Promise
 }
 
 async function fetchSbxBugs(startDate: string, endDate: string): Promise<JiraIssue[]> {
-  return jiraSearchAll(
-    `project = DEM AND issuetype = "In-Sprint Bug" AND status changed to Done DURING ("${startDate}", "${endDate}")`,
-    "summary,status,assignee,parent"
-  );
+  const fields = "summary,status,assignee,parent";
+  if (endDate < DONE_ONLY_CUTOFF) {
+    return jiraSearchAll(`project = DEM AND issuetype = "In-Sprint Bug" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`, fields);
+  } else if (startDate >= DONE_ONLY_CUTOFF) {
+    return jiraSearchAll(`project = DEM AND issuetype = "In-Sprint Bug" AND status changed to Done DURING ("${startDate}", "${endDate}")`, fields);
+  } else {
+    const [before, after] = await Promise.all([
+      jiraSearchAll(`project = DEM AND issuetype = "In-Sprint Bug" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "2026-03-17")`, fields),
+      jiraSearchAll(`project = DEM AND issuetype = "In-Sprint Bug" AND status changed to Done DURING ("${DONE_ONLY_CUTOFF}", "${endDate}")`, fields),
+    ]);
+    const seen = new Set<string>();
+    const result: JiraIssue[] = [];
+    for (const i of [...before, ...after]) { if (!seen.has(getIssueKey(i))) { seen.add(getIssueKey(i)); result.push(i); } }
+    return result;
+  }
 }
 
 async function fetchProdBugs(startDate: string, endDate: string): Promise<JiraIssue[]> {

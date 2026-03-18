@@ -12,15 +12,10 @@ import { writeFileSync, mkdirSync, existsSync } from "fs";
 console.log("Building project...");
 execSync("npx next build", { stdio: "inherit" });
 
-// Determine months to sync (Jan 2026 → current month)
+// Only sync the current month — past months are frozen in cached JSON files
 const now = new Date();
-const months = [];
-let y = 2026, m = 1;
-while (y < now.getFullYear() || (y === now.getFullYear() && m <= now.getMonth() + 1)) {
-  months.push(`${y}-${String(m).padStart(2, "0")}`);
-  m++;
-  if (m > 12) { m = 1; y++; }
-}
+const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+const months = [currentMonth];
 
 console.log(`Syncing ${months.length} months: ${months.join(", ")}`);
 

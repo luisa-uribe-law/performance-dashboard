@@ -33,6 +33,36 @@ function loadRoster(): RosterEntry[] {
   return JSON.parse(raw);
 }
 
+// ── Load DEM keys already counted in past months (to prevent double-counting) ──
+
+function loadPastDemKeys(currentMonth: string): Set<string> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const fs = require("fs");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const path = require("path");
+  const dataDir = path.join(process.cwd(), "data");
+  const keys = new Set<string>();
+
+  if (!fs.existsSync(dataDir)) return keys;
+
+  const files = fs.readdirSync(dataDir) as string[];
+  for (const file of files) {
+    const match = file.match(/^sync-(\d{4}-\d{2})\.json$/);
+    if (!match || match[1] >= currentMonth) continue; // only past months
+
+    try {
+      const raw = fs.readFileSync(path.join(dataDir, file), "utf-8");
+      const data = JSON.parse(raw);
+      for (const dev of data.developerMetrics || []) {
+        for (const integ of dev.integrations || []) {
+          if (integ.key) keys.add(integ.key);
+        }
+      }
+    } catch { /* skip corrupt files */ }
+  }
+  return keys;
+}
+
 // Known providers for weight determination
 const KNOWN_PROVIDERS = new Set([
   "stripe", "adyen", "dlocal", "payu", "mercadopago", "nuvei", "conekta", "cybersource",
@@ -125,19 +155,18 @@ function getActiveRoster(month: string): RosterEntry[] {
 // ── Data fetching ──
 
 async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIssue[]> {
-  // "Done" and "Implementation Complete" (now removed from workflow) both count as complete.
-  // Historical tickets that reached IC are still matched by the DURING clause.
-  // New tickets (post IC removal) will only reach Done.
-  // completedInMonth() prevents double-counting: if a ticket reached IC in Feb and gets
-  // bulk-moved to Done in March, statuscategorychangedate stays at Feb (same Done category),
-  // so it's attributed to Feb only.
+  // From 2026-03-18 onwards, only "Done" counts as complete for DEM tasks.
+  // Historical tickets (Jan–Mar 17) that reached "Implementation Complete" are preserved
+  // in frozen cached JSON files and won't be re-queried.
+  // The pastDemKeys dedup in syncMonth() prevents double-counting if a ticket that was
+  // already counted (via IC) later transitions to Done.
   const epics = await jiraSearchAll(
-    `project = DEM AND issuetype = Epic AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = Epic AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
   );
 
   const stories = await jiraSearchAll(
-    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,parent,statuscategorychangedate"
   );
 
@@ -147,7 +176,7 @@ async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIs
   });
 
   const techDebt = await jiraSearchAll(
-    `project = DEM AND issuetype = "Tech Debt" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = "Tech Debt" AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
   );
 
@@ -182,7 +211,7 @@ async function fetchYshubBugsForSla(startDate: string, endDate: string): Promise
 
 async function fetchSbxBugs(startDate: string, endDate: string): Promise<JiraIssue[]> {
   return jiraSearchAll(
-    `project = DEM AND issuetype = "In-Sprint Bug" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = "In-Sprint Bug" AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,parent"
   );
 }
@@ -401,6 +430,7 @@ export interface SyncResult {
     totalYshubBugsRaw: number;
     unmatchedYshub: number;
     unmatchedDem: number;
+    skippedDuplicateDem: number;
   };
 }
 
@@ -421,6 +451,11 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   ]);
 
   const roster = getActiveRoster(month);
+
+  // Load DEM keys already counted in past months to prevent double-counting.
+  // A ticket that reached IC in Feb (frozen in cached data) and later moves to Done
+  // will appear in the "status changed to Done" query but must be skipped.
+  const pastDemKeys = loadPastDemKeys(month);
 
   // ── Group by developer ──
   const devData: Record<string, {
@@ -448,8 +483,11 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   }
 
   let unmatchedDem = 0;
+  let skippedDuplicateDem = 0;
   for (const issue of demTasks) {
     if (!completedInMonth(issue)) continue;
+    const key = getIssueKey(issue);
+    if (pastDemKeys.has(key)) { skippedDuplicateDem++; continue; }
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {
@@ -471,9 +509,10 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     }
   }
 
-  // SBX bugs: only count those assigned to roster members
+  // SBX bugs: only count those assigned to roster members, skip if already counted
   for (const issue of sbxBugsRaw) {
     if (!completedInMonth(issue)) continue;
+    if (pastDemKeys.has(getIssueKey(issue))) continue;
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {
@@ -778,6 +817,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
       totalYshubBugsRaw: yshubBugsRaw.length,
       unmatchedYshub,
       unmatchedDem,
+      skippedDuplicateDem,
     },
   };
 }

@@ -35,6 +35,31 @@ function isRosterMember(assigneeName: string): boolean {
   return !!resolveJiraName(assigneeName);
 }
 
+// Load DEM task keys from past months' cached data to prevent double-counting.
+// A ticket that was counted via "Implementation Complete" in a past month should
+// not be counted again when it later reaches "Done".
+function loadPastDemKeys(fromMonth: string): Set<string> {
+  const dataDir = path.join(process.cwd(), "data");
+  const keys = new Set<string>();
+  if (!fs.existsSync(dataDir)) return keys;
+
+  const files = fs.readdirSync(dataDir) as string[];
+  for (const file of files) {
+    const match = file.match(/^sync-(\d{4}-\d{2})\.json$/);
+    if (!match || match[1] >= fromMonth) continue; // only months before the requested range
+    try {
+      const raw = fs.readFileSync(path.join(dataDir, file), "utf-8");
+      const data = JSON.parse(raw);
+      for (const dev of data.developerMetrics || []) {
+        for (const integ of dev.integrations || []) {
+          if (integ.key) keys.add(integ.key);
+        }
+      }
+    } catch { /* skip */ }
+  }
+  return keys;
+}
+
 interface JiraIssue {
   id: string;
   key?: string;
@@ -91,8 +116,9 @@ export async function GET(req: NextRequest) {
     //    Standalone Stories (no Epic Link) = independent work items
     //    Tech Debt = maintenance/improvement tasks
     //    Excludes sub-stories that belong to an Epic (those are implementation tasks, not integrations)
-    //    Both "Done" and "Implementation Complete" (removed status) count as complete.
-    const duringClause = `status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`;
+    //    Only "Done" counts as complete (from 2026-03-18 onwards).
+    //    Past months are frozen in cached JSON; dedup prevents double-counting.
+    const duringClause = `status changed to Done DURING ("${startDate}", "${endDate}")`;
     const sharedFields = "summary,assignee,statuscategorychangedate";
 
     const [epics, standaloneStories, techDebt] = await Promise.all([
@@ -138,6 +164,13 @@ export async function GET(req: NextRequest) {
         continue;
       }
       demMap.set(key, { key, summary, assignee, deployedDate });
+    }
+
+    // 1b. Remove DEM keys already counted in past months (prevents double-counting
+    //     tickets that reached IC historically and later moved to Done)
+    const pastKeys = loadPastDemKeys(from);
+    for (const key of pastKeys) {
+      demMap.delete(key);
     }
 
     // 2. Fetch YSHUB bugs with triage completed (Responsible Party, Responsible, Parent, Context all filled)

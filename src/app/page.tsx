@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [selectedDev, setSelectedDev] = useState<string | null>(null);
   const [view, setView] = useState<View>("dashboard");
   const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const [highlightsOpen, setHighlightsOpen] = useState(false);
 
   // Date range state
   const [dateMode, setDateMode] = useState<DateMode>("month");
@@ -255,13 +256,17 @@ export default function Dashboard() {
             {currentTeam && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in">
                 <div>
-                  <div className="section-label mb-2.5">
+                  <div className="section-label mb-2.5 flex items-center gap-2">
                     <span style={{ color: "var(--accent)" }}>Integration Requests</span>
+                    <button
+                      onClick={() => setHighlightsOpen(true)}
+                      className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    >
+                      Highlights
+                    </button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <KpiCard label="Completed Tasks" subtitle="Integrations & feature requests delivered" value={currentTeam.tasksCompleted} prevValue={prevTeam?.tasksCompleted} color="var(--accent)" deltaLabel=" tasks" />
-                    <KpiCard label="Tasks / Developer" subtitle="Avg. per active developer this month" value={currentTeam.tasksPerDeveloper} prevValue={prevTeam?.tasksPerDeveloper} color="var(--accent)" />
-                    <KpiCard label="Active Developers" subtitle="Devs with at least 1 task or ticket" value={currentTeam.activeDevelopers} prevValue={prevTeam?.activeDevelopers} color="var(--accent)" deltaLabel=" devs" />
                     <KpiCard label="On-Time Delivery" subtitle="% of tasks delivered by deadline" value={currentTeam.onTimeDeliveryPct} suffix="%" prevValue={prevTeam?.onTimeDeliveryPct} color="var(--accent)" deltaLabel="pp" />
                     <KpiCard label="PROD Bugs" subtitle="Bugs found in production" value={currentTeam.prodBugs} prevValue={prevTeam?.prodBugs} color={currentTeam.prodBugs <= 3 ? "var(--accent)" : "var(--danger)"} invertDelta deltaLabel=" bugs" />
                   </div>
@@ -300,13 +305,8 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* ── Insights ── */}
-            <div className="animate-fade-in anim-d2">
-              <Insights developers={aggregatedDevs} onDevClick={setSelectedDev} />
-            </div>
-
             {/* ── Developer Roster ── */}
-            <div className="animate-fade-in anim-d3">
+            <div className="animate-fade-in anim-d2">
               <TeamRoster developers={aggregatedDevs} onDevClick={setSelectedDev} />
             </div>
           </div>
@@ -325,6 +325,18 @@ export default function Dashboard() {
       </main>
 
       <MethodologyModal open={methodologyOpen} onClose={() => setMethodologyOpen(false)} />
+
+      {currentTeam && (
+        <Insights
+          open={highlightsOpen}
+          onClose={() => setHighlightsOpen(false)}
+          developers={aggregatedDevs}
+          currentTeam={currentTeam}
+          prevTeam={prevTeam}
+          onDevClick={setSelectedDev}
+          dateLabel={dateLabel}
+        />
+      )}
 
       {selectedDev && devAllMonths.length > 0 && (
         <DevProfileModal

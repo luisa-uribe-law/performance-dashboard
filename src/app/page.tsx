@@ -267,6 +267,8 @@ export default function Dashboard() {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <KpiCard label="Completed Tasks" subtitle="Integrations & feature requests delivered" value={currentTeam.tasksCompleted} prevValue={prevTeam?.tasksCompleted} color="var(--accent)" deltaLabel=" tasks" />
+                    <KpiCard label="Tasks / Developer" subtitle="Avg. per active developer this month" value={currentTeam.tasksPerDeveloper} prevValue={prevTeam?.tasksPerDeveloper} color="var(--accent)" />
+                    <KpiCard label="Active Developers" subtitle="Devs with at least 1 task or ticket" value={currentTeam.activeDevelopers} prevValue={prevTeam?.activeDevelopers} color="var(--accent)" deltaLabel=" devs" />
                     <KpiCard label="On-Time Delivery" subtitle="% of tasks delivered by deadline" value={currentTeam.onTimeDeliveryPct} suffix="%" prevValue={prevTeam?.onTimeDeliveryPct} color="var(--accent)" deltaLabel="pp" />
                     <KpiCard label="PROD Bugs" subtitle="Bugs found in production" value={currentTeam.prodBugs} prevValue={prevTeam?.prodBugs} color={currentTeam.prodBugs <= 3 ? "var(--accent)" : "var(--danger)"} invertDelta deltaLabel=" bugs" />
                   </div>

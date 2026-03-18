@@ -125,17 +125,19 @@ function getActiveRoster(month: string): RosterEntry[] {
 // ── Data fetching ──
 
 async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIssue[]> {
-  // Fetch tasks that reached Done/Implementation Complete during the period.
-  // We do NOT require the ticket to still be in that status — tickets often move
-  // forward to "Ready for Release" after completion. The DURING clause confirms
-  // they passed through Done/IC, and completedInMonth() filters by actual date.
+  // Only "Done" counts as complete. "Ready for Release" and "Implementation Complete"
+  // (now removed) do not count. The DURING clause checks the actual status transition
+  // date in the issue history, so it's reliable for single-status queries.
+  // We do NOT apply completedInMonth() to DEM tasks because statuscategorychangedate
+  // fires when entering the "Done" category (which includes Ready for Release),
+  // not when reaching "Done" specifically.
   const epics = await jiraSearchAll(
-    `project = DEM AND issuetype = Epic AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = Epic AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
   );
 
   const stories = await jiraSearchAll(
-    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = Story AND "Epic Link" is EMPTY AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,parent,statuscategorychangedate"
   );
 
@@ -145,7 +147,7 @@ async function fetchDemTasks(startDate: string, endDate: string): Promise<JiraIs
   });
 
   const techDebt = await jiraSearchAll(
-    `project = DEM AND issuetype = "Tech Debt" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = "Tech Debt" AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,issuelinks,duedate,statuscategorychangedate"
   );
 
@@ -180,7 +182,7 @@ async function fetchYshubBugsForSla(startDate: string, endDate: string): Promise
 
 async function fetchSbxBugs(startDate: string, endDate: string): Promise<JiraIssue[]> {
   return jiraSearchAll(
-    `project = DEM AND issuetype = "In-Sprint Bug" AND status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`,
+    `project = DEM AND issuetype = "In-Sprint Bug" AND status changed to Done DURING ("${startDate}", "${endDate}")`,
     "summary,status,assignee,parent"
   );
 }
@@ -433,8 +435,10 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     devData[entry.displayName] = { demTasks: [], yshubTickets: [], sbxBugs: [], prodBugs: [], yshubBugsByRP: [] };
   }
 
-  // Helper: check if the ticket's actual completion date falls within the requested month.
+  // Helper: check if the YSHUB ticket's actual completion date falls within the requested month.
   // The DURING clause can return tickets whose statuscategorychangedate is outside the month.
+  // NOTE: Only used for YSHUB tickets. DEM tasks trust the DURING clause directly because
+  // statuscategorychangedate fires at "Ready for Release" (same Done category), not at actual "Done".
   function completedInMonth(issue: JiraIssue): boolean {
     const raw = getFieldStr(issue, "statuscategorychangedate") || getFieldStr(issue, "resolutiondate");
     if (!raw) return true; // no date available, keep it
@@ -442,9 +446,9 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     return completedMonth === month;
   }
 
+  // DEM tasks: trust DURING clause (single-status "Done" query is reliable)
   let unmatchedDem = 0;
   for (const issue of demTasks) {
-    if (!completedInMonth(issue)) continue;
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {
@@ -454,6 +458,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     }
   }
 
+  // YSHUB tickets: use completedInMonth filter (multi-status query, statuscategorychangedate is reliable)
   let unmatchedYshub = 0;
   for (const issue of yshubTickets) {
     if (!completedInMonth(issue)) continue;
@@ -466,9 +471,8 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     }
   }
 
-  // SBX bugs: only count those assigned to roster members
+  // SBX bugs (DEM project): trust DURING clause (single-status "Done" query)
   for (const issue of sbxBugsRaw) {
-    if (!completedInMonth(issue)) continue;
     const jiraName = getAssigneeName(issue);
     const entry = resolveJiraName(jiraName);
     if (entry && devData[entry.displayName]) {

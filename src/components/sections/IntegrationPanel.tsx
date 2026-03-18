@@ -91,9 +91,8 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
       {tab === "tasks" && (
         <div className="space-y-3">
           {latest && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <MiniStat label="Completed" value={`${latest.tasksCompleted}`} color="var(--accent)" />
-              <MiniStat label="Per Dev" value={`${latest.tasksPerDeveloper}`} color="var(--accent)" />
               <MiniStat label="vs Last Month" value={prev ? `${latest.tasksCompleted - prev.tasksCompleted >= 0 ? "+" : ""}${latest.tasksCompleted - prev.tasksCompleted} tasks` : "-"} color={prev && latest.tasksCompleted >= prev.tasksCompleted ? "var(--success)" : "var(--danger)"} />
             </div>
           )}
@@ -129,9 +128,8 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
       {tab === "otd" && (
         <div className="space-y-3">
           {latest && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <MiniStat label="OTD Rate" value={`${latest.onTimeDeliveryPct}%`} color="var(--accent)" />
-              <MiniStat label="Tasks/Dev" value={`${latest.tasksPerDeveloper}`} color="var(--accent)" />
               <MiniStat label="vs Last Month" value={prev ? `${latest.onTimeDeliveryPct - prev.onTimeDeliveryPct >= 0 ? "+" : ""}${latest.onTimeDeliveryPct - prev.onTimeDeliveryPct}pp` : "-"} color={prev && latest.onTimeDeliveryPct >= prev.onTimeDeliveryPct ? "var(--success)" : "var(--danger)"} />
             </div>
           )}

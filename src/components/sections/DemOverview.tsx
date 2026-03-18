@@ -52,7 +52,6 @@ export default function DemOverview({ data }: Props) {
           xKey="month"
           areas={[
             { key: "onTimeDeliveryPct", color: "#E0ED80", name: "OTD %" },
-            { key: "tasksPerDeveloper", color: "var(--yuno-blue)", name: "Tasks/Dev" },
           ]}
           yDomain={[0, 100]}
           yFormatter={(v) => `${v}%`}

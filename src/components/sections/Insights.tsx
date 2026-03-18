@@ -18,10 +18,12 @@ function InsightCard({ label, name, children, color, onClick, deactivated }: {
 }) {
   return (
     <button onClick={onClick}
-      className="flex flex-col gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 hover:border-[var(--border-light)] hover:bg-[var(--card-hover)] transition-all group text-left w-full"
+      className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 hover:border-[var(--border-light)] hover:bg-[var(--card-hover)] transition-all group text-left w-full h-full"
       style={{ borderLeftWidth: 3, borderLeftColor: color }}>
-      <div className="text-[10px] uppercase tracking-wider font-semibold" style={{ color }}>{label}</div>
-      <div className="flex items-center gap-2">
+      {/* Label — fixed */}
+      <div className="text-[10px] uppercase tracking-wider font-semibold mb-1" style={{ color }}>{label}</div>
+      {/* Name — fixed */}
+      <div className="flex items-center gap-2 mb-2">
         <span className="text-[15px] font-bold text-[var(--foreground)] group-hover:text-white transition-colors truncate">{name}</span>
         {deactivated && (
           <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--muted)]/15 text-[var(--muted)] shrink-0">
@@ -29,7 +31,8 @@ function InsightCard({ label, name, children, color, onClick, deactivated }: {
           </span>
         )}
       </div>
-      <div className="text-[11px] text-[var(--muted)] leading-snug opacity-90">{children}</div>
+      {/* Content — fills remaining space */}
+      <div className="text-[11px] text-[var(--muted)] leading-snug opacity-90 flex-1">{children}</div>
     </button>
   );
 }
@@ -74,7 +77,7 @@ export default function Insights({ open, onClose, developers, currentTeam, prevT
           {/* KPI Cards */}
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-2">Team Metrics</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 items-stretch">
               <KpiCard label="Completed Tasks" subtitle="Integrations & features delivered" value={currentTeam.tasksCompleted} prevValue={prevTeam?.tasksCompleted} color="var(--accent)" deltaLabel=" tasks" />
               <KpiCard label="On-Time Delivery" subtitle="% delivered by deadline" value={currentTeam.onTimeDeliveryPct} suffix="%" prevValue={prevTeam?.onTimeDeliveryPct} color="var(--accent)" deltaLabel="pp" />
               <KpiCard label="PROD Bugs" subtitle="Bugs found in production" value={currentTeam.prodBugs} prevValue={prevTeam?.prodBugs} color={currentTeam.prodBugs <= 3 ? "var(--accent)" : "var(--danger)"} invertDelta deltaLabel=" bugs" />
@@ -84,7 +87,7 @@ export default function Insights({ open, onClose, developers, currentTeam, prevT
           {/* Highlight Cards */}
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-2">Standouts</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-stretch">
               {highestOutput && (
                 <InsightCard label="Highest Output" name={highestOutput.developer}
                   color="var(--accent)" deactivated={highestOutput.deactivated}

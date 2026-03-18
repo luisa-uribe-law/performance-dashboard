@@ -91,8 +91,8 @@ export async function GET(req: NextRequest) {
     //    Standalone Stories (no Epic Link) = independent work items
     //    Tech Debt = maintenance/improvement tasks
     //    Excludes sub-stories that belong to an Epic (those are implementation tasks, not integrations)
-    //    Only "Done" counts as complete — "Ready for Release" is not deployed yet.
-    const duringClause = `status changed to Done DURING ("${startDate}", "${endDate}")`;
+    //    Both "Done" and "Implementation Complete" (removed status) count as complete.
+    const duringClause = `status changed to (Done, "Implementation Complete") DURING ("${startDate}", "${endDate}")`;
     const sharedFields = "summary,assignee,statuscategorychangedate";
 
     const [epics, standaloneStories, techDebt] = await Promise.all([
@@ -118,9 +118,7 @@ export async function GET(req: NextRequest) {
     const demTasks = [...epics, ...validStories, ...techDebt];
 
     // Build a map of DEM keys -> deployment info
-    // We trust the DURING clause for date filtering (single-status "Done" query is reliable).
-    // statuscategorychangedate may fire at "Ready for Release" (same Done category), so we
-    // do NOT filter by it — the DURING clause already scoped to the correct period.
+    // Filter by statuscategorychangedate to match requested period and prevent double-counting.
     // Also filter by roster membership to stay consistent with the main dashboard.
     let skippedNonRoster = 0;
     const demMap = new Map<string, { key: string; summary: string; assignee: string; deployedDate: string }>();
@@ -128,10 +126,12 @@ export async function GET(req: NextRequest) {
       const key = t.key || t.id;
       const summary = typeof t.fields.summary === "string" ? t.fields.summary : "";
       const assignee = (t.fields.assignee as { displayName?: string } | null)?.displayName || "Unassigned";
-      // Use statuscategorychangedate as deployment date (best available approximation)
       const rawDate = t.fields.statuscategorychangedate;
       if (!rawDate || typeof rawDate !== "string") continue;
       const deployedDate = rawDate.slice(0, 10);
+      // Only include if deployedDate falls within the requested from–to range
+      const deployedMonth = deployedDate.slice(0, 7);
+      if (deployedMonth < from || deployedMonth > to) continue;
       // Only include tasks assigned to team members (any past or present roster member)
       if (!isRosterMember(assignee)) {
         skippedNonRoster++;

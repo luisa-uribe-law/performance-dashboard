@@ -23,12 +23,12 @@ function resolveColor(color: string): string {
     "var(--accent)": "#3E4FE0",
     "var(--accent-light)": "#5A6AEE",
     "var(--yuno-blue)": "#3E4FE0",
-    "var(--success)": "#2B9F47",
-    "var(--yuno-green)": "#2B9F47",
-    "var(--danger)": "#D43D3D",
-    "var(--warning)": "#D4890A",
-    "var(--oncall)": "#7C5CC4",
-    "var(--oncall-light)": "#9B7FDB",
+    "var(--success)": "#3E4FE0",
+    "var(--yuno-green)": "#3E4FE0",
+    "var(--danger)": "#8B3F5E",
+    "var(--warning)": "#6B7094",
+    "var(--oncall)": "#5A6AEE",
+    "var(--oncall-light)": "#7B88F0",
   };
   return map[color] || color;
 }

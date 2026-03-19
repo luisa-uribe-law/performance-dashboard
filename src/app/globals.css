@@ -20,14 +20,14 @@
   --muted: #6B7094;
   --muted-dim: #9498B5;
 
-  /* ── Semantic ── Yuno brand colors */
+  /* ── Semantic ── monochromatic blue palette */
   --accent: #3E4FE0;
   --accent-light: #5A6AEE;
-  --success: #2B9F47;
-  --warning: #D4890A;
-  --danger: #D43D3D;
-  --oncall: #7C5CC4;
-  --oncall-light: #9B7FDB;
+  --success: #3E4FE0;
+  --warning: #6B7094;
+  --danger: #8B3F5E;
+  --oncall: #5A6AEE;
+  --oncall-light: #7B88F0;
 
   /* ── Extra ── */
   --lilac: #E8EAF5;

@@ -27,14 +27,14 @@ const JIRA_BASE = "https://yunopayments.atlassian.net/browse";
 
 const ENV_COLORS: Record<string, string> = {
   PROD: "var(--danger)",
-  SBX: "var(--warning)",
+  SBX: "var(--muted)",
   STG: "var(--accent)",
 };
 
 const RT_COLORS: Record<string, string> = {
-  Merchant: "#f59e0b",
-  Team: "#6366f1",
-  Unknown: "#6b7280",
+  Merchant: "var(--muted)",
+  Team: "var(--accent)",
+  Unknown: "var(--muted-dim)",
 };
 
 function collectBugs(bugs: BugTicket[]): BugRow[] {

@@ -11,6 +11,7 @@ interface Props {
   prevTeam?: MonthlyTeamMetrics;
   onDevClick: (name: string) => void;
   dateLabel: string;
+  partialLabel?: string | null;
 }
 
 function InsightCard({ label, name, children, color, onClick, deactivated }: {
@@ -37,7 +38,7 @@ function InsightCard({ label, name, children, color, onClick, deactivated }: {
   );
 }
 
-export default function Insights({ open, onClose, developers, currentTeam, prevTeam, onDevClick, dateLabel }: Props) {
+export default function Insights({ open, onClose, developers, currentTeam, prevTeam, onDevClick, dateLabel, partialLabel }: Props) {
   if (!open) return null;
 
   const integrationDevs = developers.filter(d => d.group !== "dedicated-oncall");
@@ -65,6 +66,9 @@ export default function Insights({ open, onClose, developers, currentTeam, prevT
           <div>
             <h2 className="text-lg font-bold text-[var(--foreground)]">Integration Highlights</h2>
             <p className="text-[11px] text-[var(--muted)] mt-0.5">{dateLabel}</p>
+            {partialLabel && (
+              <p className="text-[10px] text-[var(--warning)] font-medium mt-0.5">{partialLabel}</p>
+            )}
           </div>
           <button onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors p-1">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

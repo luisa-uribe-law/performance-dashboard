@@ -176,6 +176,13 @@ export default function Dashboard() {
     return selectedMonth === currentMonth;
   }, [selectedMonth]);
 
+  const partialLabel = useMemo(() => {
+    if (!isPartialMonth) return null;
+    const now = new Date();
+    const month = now.toLocaleString("en-US", { month: "long" });
+    return `Partial data through ${month} ${now.getDate()}, ${now.getFullYear()}`;
+  }, [isPartialMonth]);
+
   const devAllMonths = useMemo(() => {
     if (!selectedDev || !data) return [];
     if (isMultiMonth) {
@@ -251,6 +258,14 @@ export default function Dashboard() {
       <main>
         {view === "dashboard" ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-5">
+
+            {/* ── Partial Month Banner ── */}
+            {partialLabel && (
+              <div className="flex items-center gap-2 text-[11px] text-[var(--warning)] bg-[var(--warning)]/8 border border-[var(--warning)]/20 rounded-lg px-3 py-2 animate-fade-in">
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 11a1 1 0 110-2 1 1 0 010 2zm1-3.5a.75.75 0 01-1.5 0v-4a.75.75 0 011.5 0v4z"/></svg>
+                <span className="font-medium">{partialLabel}</span>
+              </div>
+            )}
 
             {/* ── KPI Cards ── */}
             {currentTeam && (
@@ -336,6 +351,7 @@ export default function Dashboard() {
           prevTeam={prevTeam}
           onDevClick={setSelectedDev}
           dateLabel={dateLabel}
+          partialLabel={partialLabel}
         />
       )}
 

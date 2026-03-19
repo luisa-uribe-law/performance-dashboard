@@ -117,18 +117,18 @@ export default function Insights({ open, onClose, developers, currentTeam, prevT
               )}
               {mostOnTime && (
                 <InsightCard label="Most On-Time Deliveries" name={mostOnTime.developer}
-                  color="var(--success)" deactivated={mostOnTime.deactivated}
+                  color="var(--accent)" deactivated={mostOnTime.deactivated}
                   onClick={() => { onDevClick(mostOnTime.developer); onClose(); }}>
                   <span>{mostOnTime.onTimeTickets.length} of {mostOnTime.integrations.length} tickets closed on time:</span>
                   <ul className="mt-1 space-y-0.5 list-none">
                     {mostOnTime.onTimeTickets.slice(0, 4).map(t => (
                       <li key={t.key} className="flex items-start gap-1">
-                        <span className="shrink-0 text-[9px] mt-[2px]" style={{ color: "var(--success)" }}>&#9679;</span>
+                        <span className="shrink-0 text-[9px] mt-[2px]" style={{ color: "var(--accent)" }}>&#9679;</span>
                         <span className="truncate">{t.summary}</span>
                       </li>
                     ))}
                     {mostOnTime.onTimeTickets.length > 4 && (
-                      <li className="text-[10px]" style={{ color: "var(--success)" }}>+{mostOnTime.onTimeTickets.length - 4} more</li>
+                      <li className="text-[10px]" style={{ color: "var(--accent)" }}>+{mostOnTime.onTimeTickets.length - 4} more</li>
                     )}
                   </ul>
                 </InsightCard>

@@ -230,31 +230,9 @@ export default function Dashboard() {
         onDevSelect={setSelectedDev}
       />
 
-      {/* ── Sticky Date Banner ── */}
-      {view === "dashboard" && (
-        <div className="sticky top-[97px] z-20 border-b border-[var(--accent)]/20 bg-[var(--accent)]/10 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
-            <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="text-sm font-bold text-[var(--accent)]">{dateLabel} Report</span>
-            <div className="flex-1 h-px bg-[var(--accent)]/15" />
-            <button
-              onClick={() => setMethodologyOpen(true)}
-              className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)] border border-[var(--accent)]/30 rounded-md px-3 py-1.5 hover:bg-[var(--accent)]/8 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Methodology
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="flex">
         {/* ── Left Sidebar ── */}
-        <aside className="sticky top-[97px] h-[calc(100vh-97px)] w-14 lg:w-48 shrink-0 border-r border-[var(--border)] bg-[var(--card)] flex flex-col py-2 z-10">
+        <aside className="fixed top-[57px] left-0 bottom-0 w-14 lg:w-48 border-r border-[var(--border)] bg-[var(--card)] flex flex-col py-2 z-30">
           {[
             { id: "dashboard" as View, label: "Dashboard", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /> },
             { id: "team" as View, label: "Team", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
@@ -280,7 +258,29 @@ export default function Dashboard() {
         </aside>
 
         {/* ── Main Content ── */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 ml-14 lg:ml-48">
+          {/* ── Sticky Date Banner (dashboard only) ── */}
+          {view === "dashboard" && (
+            <div className="sticky top-[57px] z-20 border-b border-[var(--accent)]/20 bg-[var(--accent)]/10 backdrop-blur-md">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm font-bold text-[var(--accent)]">{dateLabel} Report</span>
+                <div className="flex-1 h-px bg-[var(--accent)]/15" />
+                <button
+                  onClick={() => setMethodologyOpen(true)}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)] border border-[var(--accent)]/30 rounded-md px-3 py-1.5 hover:bg-[var(--accent)]/8 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Methodology
+                </button>
+              </div>
+            </div>
+          )}
+
           {view === "dashboard" ? (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-5">
 

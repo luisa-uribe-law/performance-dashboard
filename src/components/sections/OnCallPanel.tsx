@@ -66,15 +66,15 @@ export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMo
   return (
     <SectionCard title="On-Call Support" subtitle={`YSHUB Board — ${formatMonth(selectedMonth)}`}>
       {/* Tabs */}
-      <div className="flex gap-0.5 mb-4 bg-[var(--surface)] rounded-lg p-0.5">
+      <div className="flex mb-4 border-b border-[var(--border)]">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 text-[11px] font-medium py-1.5 rounded-md transition-all ${
+            className={`flex-1 text-[11px] font-medium py-2 transition-all border-b-2 -mb-px ${
               tab === t.id
-                ? "bg-[var(--oncall)] text-white shadow-sm"
-                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                ? "border-[var(--oncall)] text-[var(--oncall)] bg-[var(--oncall)]/5"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
             }`}
           >
             {t.label}

@@ -141,10 +141,10 @@ export default function IntegrationBugsView({ bugs, onBack }: Props) {
               <button
                 key={env}
                 onClick={() => setEnvFilter(envFilter === env ? "all" : env)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  envFilter === env ? "text-white" : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                className={`px-2.5 py-1.5 text-xs font-medium transition-all border-b-2 ${
+                  envFilter === env ? "border-current" : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
                 }`}
-                style={envFilter === env ? { backgroundColor: color } : undefined}
+                style={envFilter === env ? { color, backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)` } : undefined}
               >
                 {env} ({count})
               </button>

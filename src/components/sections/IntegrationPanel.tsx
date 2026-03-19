@@ -71,15 +71,15 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
   return (
     <SectionCard title="Integration Requests" subtitle={`DEM Board — ${formatMonth(selectedMonth)}`}>
       {/* Tabs */}
-      <div className="flex gap-0.5 mb-4 bg-[var(--surface)] rounded-lg p-0.5">
+      <div className="flex mb-4 border-b border-[var(--border)]">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 text-[11px] font-medium py-1.5 rounded-md transition-all ${
+            className={`flex-1 text-[11px] font-medium py-2 transition-all border-b-2 -mb-px ${
               tab === t.id
-                ? "bg-[var(--accent)] text-white shadow-sm"
-                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
             }`}
           >
             {t.label}

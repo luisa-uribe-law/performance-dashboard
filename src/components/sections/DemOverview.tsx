@@ -20,15 +20,15 @@ export default function DemOverview({ data }: Props) {
 
   return (
     <SectionCard title="Integration Ops" subtitle="DEM Board Performance">
-      <div className="flex gap-1 mb-4 bg-[var(--surface)] rounded-lg p-1">
+      <div className="flex mb-4 border-b border-[var(--border)]">
         {metrics.map(m => (
           <button
             key={m.id}
             onClick={() => setTab(m.id)}
-            className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-all ${
+            className={`flex-1 text-xs font-medium py-2 transition-all border-b-2 -mb-px ${
               tab === m.id
-                ? "bg-[var(--yuno-blue)] text-white shadow-sm"
-                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
             }`}
           >
             {m.label}

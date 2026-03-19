@@ -20,12 +20,12 @@
   --muted: #6B7094;
   --muted-dim: #9498B5;
 
-  /* ── Semantic ── monochromatic blue palette */
+  /* ── Semantic ── soft pastel palette */
   --accent: #3E4FE0;
   --accent-light: #5A6AEE;
-  --success: #3E4FE0;
+  --success: #4CAF82;
   --warning: #6B7094;
-  --danger: #8B3F5E;
+  --danger: #E07070;
   --oncall: #5A6AEE;
   --oncall-light: #7B88F0;
 

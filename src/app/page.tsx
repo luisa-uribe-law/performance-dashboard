@@ -230,9 +230,21 @@ export default function Dashboard() {
         onDevSelect={setSelectedDev}
       />
 
-      <div className="flex">
-        {/* ── Left Sidebar ── */}
-        <aside className="fixed top-[57px] left-0 bottom-0 w-14 lg:w-48 border-r border-[var(--border)] bg-[var(--card)] flex flex-col py-2 z-30">
+      {/* ── Left Sidebar — full height, includes Yuno branding ── */}
+      <aside className="fixed top-0 left-0 bottom-0 w-14 lg:w-48 border-r border-[var(--border)] bg-[var(--card)] flex flex-col z-50">
+        {/* Yuno branding */}
+        <div className="flex items-center gap-2.5 px-3 lg:px-4 py-3.5 border-b border-[var(--border)]">
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-sm">Y</span>
+          </div>
+          <div className="hidden lg:block min-w-0">
+            <h1 className="text-sm font-bold text-[var(--foreground)] leading-tight truncate">Integrations</h1>
+            <p className="text-[10px] text-[var(--muted)] leading-tight">Performance</p>
+          </div>
+        </div>
+
+        {/* Nav items */}
+        <nav className="flex flex-col py-2 flex-1">
           {[
             { id: "dashboard" as View, label: "Dashboard", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /> },
             { id: "team" as View, label: "Team", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
@@ -255,13 +267,25 @@ export default function Dashboard() {
               <span className="hidden lg:block truncate">{item.label}</span>
             </button>
           ))}
-        </aside>
+        </nav>
+      </aside>
 
-        {/* ── Main Content ── */}
-        <main className="flex-1 min-w-0 ml-14 lg:ml-48">
+      {/* ── Right side: header + main content ── */}
+      <div className="ml-14 lg:ml-48">
+        <Header
+          months={allMonths}
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
+          group={group}
+          onGroupChange={setGroup}
+          developers={data.developers}
+          onDevSelect={setSelectedDev}
+        />
+
+        <main className="min-w-0">
           {/* ── Sticky Date Banner (dashboard only) ── */}
           {view === "dashboard" && (
-            <div className="sticky top-[57px] z-20 border-b border-[var(--accent)]/20 bg-[var(--accent)]/10 backdrop-blur-md">
+            <div className="sticky top-[85px] z-20 border-b border-[var(--accent)]/20 bg-[var(--accent)]/10 backdrop-blur-md">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
                 <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

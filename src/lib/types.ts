@@ -111,6 +111,7 @@ export interface PerformanceData {
   bugSla: BugSlaMetrics[];
   developers: Developer[];
   yshubBugs: BugTicket[];
+  unmatchedOnCallTickets: Record<string, OnCallTicket[]>; // month -> tickets not matched to roster
 }
 
 export interface LeakageBug {

@@ -451,6 +451,7 @@ export interface SyncResult {
   month: string;
   teamMetrics: MonthlyTeamMetrics;
   developerMetrics: DeveloperMonthly[];
+  unmatchedOnCallTickets: OnCallTicket[];
   onCallPriority: OnCallPriorityMetrics[];
   bugSla: BugSlaMetrics;
   yshubBugs: BugTicket[];
@@ -531,6 +532,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   }
 
   let unmatchedYshub = 0;
+  const unmatchedYshubTickets: JiraIssue[] = [];
   for (const issue of yshubTickets) {
     if (!completedInMonth(issue)) continue;
     const jiraName = getAssigneeName(issue);
@@ -539,6 +541,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
       devData[entry.displayName].yshubTickets.push(issue);
     } else {
       unmatchedYshub++;
+      unmatchedYshubTickets.push(issue);
     }
   }
 
@@ -707,11 +710,12 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     reportingType: getReportingType(b),
   }));
 
-  // ── On-Call priority breakdown (uses all closed tickets for team-level view) ──
+  // ── On-Call priority breakdown (excludes Canceled — consistent with developer counts) ──
   // Filter to only tickets whose completion date matches the requested month
   const filteredYshubAllClosed = yshubAllClosed.filter(completedInMonth);
+  const filteredYshubForPriority = yshubTickets.filter(completedInMonth);
   const byPriority: Record<string, JiraIssue[]> = {};
-  for (const t of filteredYshubAllClosed) {
+  for (const t of filteredYshubForPriority) {
     const p = (getField(t, "priority") as { name?: string })?.name || "Low";
     if (!byPriority[p]) byPriority[p] = [];
     byPriority[p].push(t);
@@ -739,12 +743,12 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     };
   });
 
-  // ── Team metrics (use yshubAllClosed for totals — includes Canceled + Bug types) ──
+  // ── Team metrics (excludes Canceled — consistent with developer-level counts) ──
+  const filteredYshubTickets = yshubTickets.filter(completedInMonth);
   const allHours: number[] = [];
   let teamSlaOk = 0;
   let teamSlaTotal = 0;
-  // SLA and resolution metrics still computed from non-canceled tickets only (meaningful metrics)
-  for (const t of yshubTickets) {
+  for (const t of filteredYshubTickets) {
     const sla = extractSla(t);
     if (sla) {
       teamSlaTotal++;
@@ -779,7 +783,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     yshubBugsMerchant,
     yshubBugsTeam,
     yshubBugsUnknown,
-    ticketsResolved: filteredYshubAllClosed.length, // All YSHUB tickets closed (incl. Canceled + Bugs)
+    ticketsResolved: filteredYshubTickets.length, // Excludes Canceled — matches developer ticket list
     slaCompliancePct: teamSlaTotal > 0 ? Math.round((teamSlaOk / teamSlaTotal) * 1000) / 10 : 0,
     medianResolutionDays: allHours.length > 0 ? Math.round(median(allHours) / 24 * 10) / 10 : 0,
     activeDevelopers,
@@ -834,10 +838,25 @@ export async function syncMonth(month: string): Promise<SyncResult> {
     }),
   };
 
+  // Build OnCallTicket objects for unmatched YSHUB tickets
+  const unmatchedOnCallTickets: OnCallTicket[] = unmatchedYshubTickets.map(t => {
+    const sla = extractSla(t);
+    const cd = getFieldStr(t, "statuscategorychangedate") || getFieldStr(t, "resolutiondate");
+    return {
+      key: getIssueKey(t),
+      summary: getFieldStr(t, "summary"),
+      priority: (getField(t, "priority") as { name?: string })?.name || "Unknown",
+      slaBreached: sla ? sla.breached : false,
+      resolutionHrs: sla ? Math.round(sla.elapsedMs / (1000 * 60 * 60) * 10) / 10 : null,
+      closedDate: cd ? parseJiraDate(cd).toISOString().slice(0, 10) : null,
+    };
+  });
+
   return {
     month,
     teamMetrics,
     developerMetrics,
+    unmatchedOnCallTickets,
     onCallPriority,
     bugSla,
     yshubBugs,

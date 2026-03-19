@@ -343,6 +343,7 @@ export default function Dashboard() {
                   selectedMonth={selectedMonth}
                   onDevClick={setSelectedDev}
                   isPartialMonth={isPartialMonth}
+                  unmatchedTickets={data?.unmatchedOnCallTickets?.[selectedMonth] || []}
                 />
               </div>
 

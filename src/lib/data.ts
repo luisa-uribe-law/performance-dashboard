@@ -1,4 +1,4 @@
-import { PerformanceData, GroupFilter, DeveloperMonthly, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics, Developer, BugTicket } from "./types";
+import { PerformanceData, GroupFilter, DeveloperMonthly, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics, Developer, BugTicket, OnCallTicket } from "./types";
 import { syncMonth, getRosterForMonth, SyncResult } from "./jira";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -111,6 +111,7 @@ export async function loadPerformanceData(): Promise<PerformanceData> {
   const onCallPriority: OnCallPriorityMetrics[] = [];
   const bugSla: BugSlaMetrics[] = [];
   const yshubBugs: BugTicket[] = [];
+  const unmatchedOnCallTickets: Record<string, OnCallTicket[]> = {};
   const developerSet = new Map<string, Developer>();
 
   for (const result of results) {
@@ -118,6 +119,9 @@ export async function loadPerformanceData(): Promise<PerformanceData> {
     developerMetrics.push(...result.developerMetrics);
     onCallPriority.push(...result.onCallPriority);
     if (result.bugSla) bugSla.push(result.bugSla);
+    if (result.unmatchedOnCallTickets?.length) {
+      unmatchedOnCallTickets[result.month] = result.unmatchedOnCallTickets;
+    }
     for (const bug of result.yshubBugs) {
       yshubBugs.push({ ...bug, month: result.month });
     }
@@ -140,6 +144,7 @@ export async function loadPerformanceData(): Promise<PerformanceData> {
     bugSla,
     developers: Array.from(developerSet.values()),
     yshubBugs,
+    unmatchedOnCallTickets,
   };
 }
 

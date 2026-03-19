@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DeveloperMonthly, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics } from "@/lib/types";
+import { DeveloperMonthly, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics, OnCallTicket } from "@/lib/types";
 import { formatMonth } from "@/lib/format";
 import TrendChart from "../shared/TrendChart";
 import SectionCard from "../shared/SectionCard";
@@ -15,6 +15,7 @@ interface Props {
   selectedMonth: string;
   onDevClick: (name: string) => void;
   isPartialMonth?: boolean;
+  unmatchedTickets?: OnCallTicket[];
 }
 
 const JIRA_BROWSE = "https://yunopayments.atlassian.net/browse";
@@ -22,7 +23,7 @@ const JIRA_BROWSE = "https://yunopayments.atlassian.net/browse";
 const tabs = [
   { id: "overview", label: "Tickets" },
   { id: "sla", label: "SLA" },
-  { id: "resolution", label: "Resolution" },
+  { id: "resolution", label: "Resolution Time" },
   { id: "list", label: "Ticket List" },
 ] as const;
 
@@ -48,7 +49,7 @@ function DevRow({ name, value, label, max, color, onClick }: { name: string; val
   );
 }
 
-export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMonth, developers, onDevClick, isPartialMonth }: Props) {
+export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMonth, developers, onDevClick, isPartialMonth, unmatchedTickets = [] }: Props) {
   const [tab, setTab] = useState<string>("overview");
   const [slaView, setSlaView] = useState<"all" | "bugs">("all");
 
@@ -195,8 +196,9 @@ export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMo
 
           {slaView === "bugs" && (
             <>
-              <div className="text-[10px] text-[var(--muted)] leading-relaxed rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
-                Bugs in production regardless of reporter + bugs in other environments only if reported by merchant or company.
+              <div className="text-[10px] text-[var(--muted)] leading-relaxed rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 space-y-1">
+                <p>Bugs in production regardless of reporter + bugs in other environments only if reported by merchant or company.</p>
+                <p>SLA compliance uses Jira&apos;s business-hour calendar. Resolution time shown is raw calendar time, so a bug may appear fast in calendar time but still breach its business-hour SLA target.</p>
               </div>
               {bugSla ? (
                 <>
@@ -262,7 +264,7 @@ export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMo
                     <th className="py-2.5 px-3 text-left text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium">Priority</th>
                     {teamData.map(t => (
                       <th key={t.month} className="py-2.5 px-3 text-right text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium">
-                        {t.month.split("-")[1] === "01" ? "Jan" : "Feb"}
+                        {formatMonth(t.month)}
                       </th>
                     ))}
                     <th className="py-2.5 px-3 text-center text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium">Trend</th>
@@ -304,7 +306,7 @@ export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMo
           {/* Resolution by developer */}
           {oncallDevsRes.length > 0 && (
             <div>
-              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Resolution Time by Developer (fastest first)</div>
+              <div className="text-[10px] font-medium text-[var(--muted)] mb-1.5 uppercase tracking-wider">Median Resolution Time per Developer (fastest first)</div>
               <div className="space-y-0 max-h-[200px] overflow-y-auto pr-1">
                 {oncallDevsRes.map(d => {
                   const pct = Math.min(100, (d.medianResolutionHrs / (oncallDevsRes[oncallDevsRes.length - 1]?.medianResolutionHrs || 1)) * 100);
@@ -327,9 +329,12 @@ export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMo
       )}
       {/* Ticket List tab */}
       {tab === "list" && (() => {
-        const allTickets = developers.flatMap(d =>
+        const devTickets = developers.flatMap(d =>
           d.onCallTickets.map(t => ({ ...t, developer: d.developer }))
-        ).sort((a, b) => (b.closedDate || "").localeCompare(a.closedDate || ""));
+        );
+        const unmatched = unmatchedTickets.map(t => ({ ...t, developer: "Unassigned" }));
+        const allTickets = [...devTickets, ...unmatched]
+          .sort((a, b) => (b.closedDate || "").localeCompare(a.closedDate || ""));
 
         function downloadExcel() {
           const rows = allTickets.map(t => ({

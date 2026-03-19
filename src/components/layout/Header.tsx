@@ -59,9 +59,7 @@ export default function Header({
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-md">
-      {/* Single row: date controls + search + group filter */}
-      <div className="px-4 sm:px-6 py-2.5 flex flex-wrap items-center gap-2">
+    <div className="h-full flex items-center px-4 sm:px-6 gap-2 flex-wrap">
         {/* Mode selector */}
         <div className="flex gap-0.5 p-0.5 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
           {([
@@ -197,7 +195,6 @@ export default function Header({
             <option key={k} value={k}>{v}</option>
           ))}
         </select>
-      </div>
-    </header>
+    </div>
   );
 }

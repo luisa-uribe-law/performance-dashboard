@@ -220,90 +220,81 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      <Header
-        months={allMonths}
-        dateRange={dateRange}
-        onDateRangeChange={handleDateRangeChange}
-        group={group}
-        onGroupChange={setGroup}
-        developers={data.developers}
-        onDevSelect={setSelectedDev}
-      />
-
-      {/* ── Left Sidebar — full height, includes Yuno branding ── */}
-      <aside className="fixed top-0 left-0 bottom-0 w-14 lg:w-48 border-r border-[var(--border)] bg-[var(--card)] flex flex-col z-50">
-        {/* Yuno branding */}
-        <div className="flex items-center gap-2.5 px-3 lg:px-4 py-3.5 border-b border-[var(--border)]">
-          <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-sm">Y</span>
+      {/* ── Fixed Top Bar: Logo + Filters ── */}
+      <div className="fixed top-0 left-0 right-0 h-12 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-md flex">
+        {/* Logo area — matches sidebar width */}
+        <div className="w-14 lg:w-48 shrink-0 border-r border-[var(--border)] bg-[var(--card)] flex items-center gap-2.5 px-3 lg:px-4">
+          <div className="w-7 h-7 rounded-lg bg-[var(--accent)] flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-xs">Y</span>
           </div>
           <div className="hidden lg:block min-w-0">
-            <h1 className="text-sm font-bold text-[var(--foreground)] leading-tight truncate">Integrations</h1>
-            <p className="text-[10px] text-[var(--muted)] leading-tight">Performance</p>
+            <h1 className="text-[13px] font-bold text-[var(--foreground)] leading-tight truncate">Integrations</h1>
+            <p className="text-[9px] text-[var(--muted)] leading-tight">Performance</p>
           </div>
         </div>
+        {/* Filters */}
+        <div className="flex-1 min-w-0">
+          <Header
+            months={allMonths}
+            dateRange={dateRange}
+            onDateRangeChange={handleDateRangeChange}
+            group={group}
+            onGroupChange={setGroup}
+            developers={data.developers}
+            onDevSelect={setSelectedDev}
+          />
+        </div>
+      </div>
 
-        {/* Nav items */}
-        <nav className="flex flex-col py-2 flex-1">
-          {[
-            { id: "dashboard" as View, label: "Dashboard", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /> },
-            { id: "team" as View, label: "Team", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
-            { id: "bugs" as View, label: "Bugs per Provider", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /> },
-            { id: "leakage" as View, label: "Bug Leakage", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /> },
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => setView(item.id)}
-              className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 mx-1 rounded-lg text-[13px] font-medium transition-all ${
-                view === item.id
-                  ? "bg-[var(--accent)]/8 text-[var(--accent)]"
-                  : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-              }`}
-              title={item.label}
-            >
-              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                {item.icon}
-              </svg>
-              <span className="hidden lg:block truncate">{item.label}</span>
-            </button>
-          ))}
-        </nav>
+      {/* ── Left Sidebar (below top bar) ── */}
+      <aside className="fixed top-12 left-0 bottom-0 w-14 lg:w-48 border-r border-[var(--border)] bg-[var(--card)] flex flex-col py-2 z-40">
+        {[
+          { id: "dashboard" as View, label: "Dashboard", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /> },
+          { id: "team" as View, label: "Team", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
+          { id: "bugs" as View, label: "Bugs per Provider", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /> },
+          { id: "leakage" as View, label: "Bug Leakage", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+        ].map(item => (
+          <button
+            key={item.id}
+            onClick={() => setView(item.id)}
+            className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 mx-1 rounded-lg text-[13px] font-medium transition-all ${
+              view === item.id
+                ? "bg-[var(--accent)]/8 text-[var(--accent)]"
+                : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+            }`}
+            title={item.label}
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              {item.icon}
+            </svg>
+            <span className="hidden lg:block truncate">{item.label}</span>
+          </button>
+        ))}
       </aside>
 
-      {/* ── Right side: header + main content ── */}
-      <div className="ml-14 lg:ml-48">
-        <Header
-          months={allMonths}
-          dateRange={dateRange}
-          onDateRangeChange={handleDateRangeChange}
-          group={group}
-          onGroupChange={setGroup}
-          developers={data.developers}
-          onDevSelect={setSelectedDev}
-        />
-
-        <main className="min-w-0">
-          {/* ── Sticky Date Banner (dashboard only) ── */}
-          {view === "dashboard" && (
-            <div className="sticky top-[45px] z-20 border-b border-[var(--accent)]/20 bg-[var(--accent)]/10 backdrop-blur-md">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
-                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      {/* ── Main Content (offset for top bar + sidebar) ── */}
+      <main className="ml-14 lg:ml-48 pt-12 min-w-0">
+        {/* ── Date Banner (dashboard only) ── */}
+        {view === "dashboard" && (
+          <div className="sticky top-12 z-20 border-b border-[var(--accent)]/20 bg-[var(--accent)]/10 backdrop-blur-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center gap-3">
+              <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-bold text-[var(--accent)]">{dateLabel} Report</span>
+              <div className="flex-1 h-px bg-[var(--accent)]/15" />
+              <button
+                onClick={() => setMethodologyOpen(true)}
+                className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)] border border-[var(--accent)]/30 rounded-md px-3 py-1.5 hover:bg-[var(--accent)]/8 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-sm font-bold text-[var(--accent)]">{dateLabel} Report</span>
-                <div className="flex-1 h-px bg-[var(--accent)]/15" />
-                <button
-                  onClick={() => setMethodologyOpen(true)}
-                  className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)] border border-[var(--accent)]/30 rounded-md px-3 py-1.5 hover:bg-[var(--accent)]/8 transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Methodology
-                </button>
-              </div>
+                Methodology
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
           {view === "dashboard" ? (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-5">
@@ -390,8 +381,7 @@ export default function Dashboard() {
               onBack={() => setView("dashboard")}
             />
           )}
-        </main>
-      </div>
+      </main>
 
       <MethodologyModal open={methodologyOpen} onClose={() => setMethodologyOpen(false)} />
 

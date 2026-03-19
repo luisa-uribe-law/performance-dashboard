@@ -21,10 +21,6 @@ interface Props {
   onGroupChange: (group: GroupFilter) => void;
   developers: Developer[];
   onDevSelect: (name: string) => void;
-  onBugsView: () => void;
-  bugsViewActive: boolean;
-  onLeakageView: () => void;
-  leakageViewActive: boolean;
 }
 
 const groupLabels: Record<GroupFilter, string> = {
@@ -36,7 +32,7 @@ const groupLabels: Record<GroupFilter, string> = {
 };
 
 export default function Header({
-  months, dateRange, onDateRangeChange, group, onGroupChange, developers, onDevSelect, onBugsView, bugsViewActive, onLeakageView, leakageViewActive,
+  months, dateRange, onDateRangeChange, group, onGroupChange, developers, onDevSelect,
 }: Props) {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -107,47 +103,6 @@ export default function Header({
             </div>
           )}
         </div>
-
-        {/* Team management */}
-        <a
-          href="/team"
-          className="rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 flex items-center gap-1.5 bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-light)]"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          Team
-        </a>
-
-        {/* YSHUB Bugs view */}
-        <button
-          onClick={onBugsView}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-            bugsViewActive
-              ? "bg-[var(--danger)] text-white shadow-lg shadow-[var(--danger)]/25"
-              : "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-light)]"
-          }`}
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
-          </svg>
-          YSHUB Bugs
-        </button>
-
-        {/* Bug Leakage view */}
-        <button
-          onClick={onLeakageView}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-            leakageViewActive
-              ? "bg-[var(--warning)] text-white shadow-lg shadow-[var(--warning)]/25"
-              : "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-light)]"
-          }`}
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          Leakage
-        </button>
 
         {/* Group */}
         <select

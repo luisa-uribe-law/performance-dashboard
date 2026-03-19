@@ -14,8 +14,9 @@ import IntegrationPanel from "@/components/sections/IntegrationPanel";
 import OnCallPanel from "@/components/sections/OnCallPanel";
 import Insights from "@/components/sections/Insights";
 import TeamRoster from "@/components/sections/TeamRoster";
+import TeamView from "@/components/sections/TeamView";
 
-type View = "dashboard" | "bugs" | "leakage";
+type View = "dashboard" | "bugs" | "leakage" | "team";
 
 function computeActiveMonths(dr: DateRange, allMonths: string[]): string[] {
   if (dr.mode === "month") return [dr.selectedMonth].filter(Boolean);
@@ -227,10 +228,6 @@ export default function Dashboard() {
         onGroupChange={setGroup}
         developers={data.developers}
         onDevSelect={setSelectedDev}
-        onBugsView={() => setView(view === "bugs" ? "dashboard" : "bugs")}
-        bugsViewActive={view === "bugs"}
-        onLeakageView={() => setView(view === "leakage" ? "dashboard" : "leakage")}
-        leakageViewActive={view === "leakage"}
       />
 
       {/* ── Sticky Date Banner ── */}
@@ -255,90 +252,121 @@ export default function Dashboard() {
         </div>
       )}
 
-      <main>
-        {view === "dashboard" ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-5">
+      <div className="flex">
+        {/* ── Left Sidebar ── */}
+        <aside className="sticky top-[97px] h-[calc(100vh-97px)] w-14 lg:w-48 shrink-0 border-r border-[var(--border)] bg-[var(--card)] flex flex-col py-2 z-10">
+          {[
+            { id: "dashboard" as View, label: "Dashboard", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /> },
+            { id: "team" as View, label: "Team", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
+            { id: "bugs" as View, label: "Bugs per Provider", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /> },
+            { id: "leakage" as View, label: "Bug Leakage", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setView(item.id)}
+              className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 mx-1 rounded-lg text-[13px] font-medium transition-all ${
+                view === item.id
+                  ? "bg-[var(--accent)]/8 text-[var(--accent)]"
+                  : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+              }`}
+              title={item.label}
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                {item.icon}
+              </svg>
+              <span className="hidden lg:block truncate">{item.label}</span>
+            </button>
+          ))}
+        </aside>
 
-            {/* ── Partial Month Banner ── */}
-            {partialLabel && (
-              <div className="flex items-center gap-2 text-[11px] text-[var(--warning)] bg-[var(--warning)]/8 border border-[var(--warning)]/20 rounded-lg px-3 py-2 animate-fade-in">
-                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 11a1 1 0 110-2 1 1 0 010 2zm1-3.5a.75.75 0 01-1.5 0v-4a.75.75 0 011.5 0v4z"/></svg>
-                <span className="font-medium">{partialLabel}</span>
-              </div>
-            )}
+        {/* ── Main Content ── */}
+        <main className="flex-1 min-w-0">
+          {view === "dashboard" ? (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-5">
 
-            {/* ── KPI Cards ── */}
-            {currentTeam && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in items-stretch">
-                <div className="flex flex-col">
-                  <div className="section-label mb-2.5 h-[28px] flex items-center gap-2">
-                    <span style={{ color: "var(--accent)" }}>Integration Requests</span>
-                    <button
-                      onClick={() => setHighlightsOpen(true)}
-                      className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
-                    >
-                      Highlights
-                    </button>
+              {/* ── Partial Month Banner ── */}
+              {partialLabel && (
+                <div className="flex items-center gap-2 text-[11px] text-[var(--warning)] bg-[var(--warning)]/8 border border-[var(--warning)]/20 rounded-lg px-3 py-2 animate-fade-in">
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 11a1 1 0 110-2 1 1 0 010 2zm1-3.5a.75.75 0 01-1.5 0v-4a.75.75 0 011.5 0v4z"/></svg>
+                  <span className="font-medium">{partialLabel}</span>
+                </div>
+              )}
+
+              {/* ── KPI Cards ── */}
+              {currentTeam && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in items-stretch">
+                  <div className="flex flex-col">
+                    <div className="section-label mb-2.5 h-[28px] flex items-center gap-2">
+                      <span style={{ color: "var(--accent)" }}>Integration Requests</span>
+                      <button
+                        onClick={() => setHighlightsOpen(true)}
+                        className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                      >
+                        Highlights
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 flex-1">
+                      <KpiCard label="Completed Tasks" subtitle="Integrations & features delivered" value={currentTeam.tasksCompleted} prevValue={prevTeam?.tasksCompleted} color="var(--accent)" deltaLabel=" tasks" />
+                      <KpiCard label="Tasks / Developer" subtitle="Avg. per active developer" value={currentTeam.tasksPerDeveloper} prevValue={prevTeam?.tasksPerDeveloper} color="var(--accent)" />
+                      <KpiCard label="On-Time Delivery" subtitle="% delivered by deadline" value={currentTeam.onTimeDeliveryPct} suffix="%" prevValue={prevTeam?.onTimeDeliveryPct} color="var(--accent)" deltaLabel="pp" />
+                      <KpiCard label="PROD Bugs" subtitle="Bugs found in production" value={currentTeam.prodBugs} prevValue={prevTeam?.prodBugs} color={currentTeam.prodBugs <= 3 ? "var(--accent)" : "var(--danger)"} invertDelta deltaLabel=" bugs" />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 flex-1">
-                    <KpiCard label="Completed Tasks" subtitle="Integrations & features delivered" value={currentTeam.tasksCompleted} prevValue={prevTeam?.tasksCompleted} color="var(--accent)" deltaLabel=" tasks" />
-                    <KpiCard label="Tasks / Developer" subtitle="Avg. per active developer" value={currentTeam.tasksPerDeveloper} prevValue={prevTeam?.tasksPerDeveloper} color="var(--accent)" />
-                    <KpiCard label="On-Time Delivery" subtitle="% delivered by deadline" value={currentTeam.onTimeDeliveryPct} suffix="%" prevValue={prevTeam?.onTimeDeliveryPct} color="var(--accent)" deltaLabel="pp" />
-                    <KpiCard label="PROD Bugs" subtitle="Bugs found in production" value={currentTeam.prodBugs} prevValue={prevTeam?.prodBugs} color={currentTeam.prodBugs <= 3 ? "var(--accent)" : "var(--danger)"} invertDelta deltaLabel=" bugs" />
+
+                  <div className="flex flex-col">
+                    <div className="section-label mb-2.5 h-[28px] flex items-center">
+                      <span style={{ color: "var(--oncall)" }}>On-Call Support</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 flex-1">
+                      <KpiCard label="Tickets Resolved" subtitle="Total support tickets closed" value={currentTeam.ticketsResolved} prevValue={prevTeam?.ticketsResolved} color="var(--oncall)" deltaLabel=" tickets" />
+                      <KpiCard label="SLA Compliance" subtitle="% resolved within SLA" value={currentTeam.slaCompliancePct} suffix="%" prevValue={prevTeam?.slaCompliancePct} color="var(--oncall)" deltaLabel="pp" />
+                      <KpiCard label="Avg. Resolution" subtitle="Median time to resolve" value={currentTeam.medianResolutionDays} suffix="d" prevValue={prevTeam?.medianResolutionDays} color="var(--oncall)" invertDelta deltaLabel="d" />
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <div className="flex flex-col">
-                  <div className="section-label mb-2.5 h-[28px] flex items-center">
-                    <span style={{ color: "var(--oncall)" }}>On-Call Support</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 flex-1">
-                    <KpiCard label="Tickets Resolved" subtitle="Total support tickets closed" value={currentTeam.ticketsResolved} prevValue={prevTeam?.ticketsResolved} color="var(--oncall)" deltaLabel=" tickets" />
-                    <KpiCard label="SLA Compliance" subtitle="% resolved within SLA" value={currentTeam.slaCompliancePct} suffix="%" prevValue={prevTeam?.slaCompliancePct} color="var(--oncall)" deltaLabel="pp" />
-                    <KpiCard label="Avg. Resolution" subtitle="Median time to resolve" value={currentTeam.medianResolutionDays} suffix="d" prevValue={prevTeam?.medianResolutionDays} color="var(--oncall)" invertDelta deltaLabel="d" />
-                  </div>
-                </div>
+              {/* ── Main Panels ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in anim-d1">
+                <IntegrationPanel
+                  teamData={teamDataUpToSelected}
+                  developers={aggregatedDevs}
+                  selectedMonth={selectedMonth}
+                  onDevClick={setSelectedDev}
+                  isPartialMonth={isPartialMonth}
+                />
+                <OnCallPanel
+                  teamData={teamDataUpToSelected}
+                  priorityData={priorityDataUpToSelected}
+                  bugSla={bugSlaForMonth}
+                  developers={aggregatedDevs}
+                  selectedMonth={selectedMonth}
+                  onDevClick={setSelectedDev}
+                  isPartialMonth={isPartialMonth}
+                />
               </div>
-            )}
 
-            {/* ── Main Panels ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in anim-d1">
-              <IntegrationPanel
-                teamData={teamDataUpToSelected}
-                developers={aggregatedDevs}
-                selectedMonth={selectedMonth}
-                onDevClick={setSelectedDev}
-                isPartialMonth={isPartialMonth}
-              />
-              <OnCallPanel
-                teamData={teamDataUpToSelected}
-                priorityData={priorityDataUpToSelected}
-                bugSla={bugSlaForMonth}
-                developers={aggregatedDevs}
-                selectedMonth={selectedMonth}
-                onDevClick={setSelectedDev}
-                isPartialMonth={isPartialMonth}
-              />
+              {/* ── Developer Roster ── */}
+              <div className="animate-fade-in anim-d2">
+                <TeamRoster developers={aggregatedDevs} onDevClick={setSelectedDev} />
+              </div>
             </div>
-
-            {/* ── Developer Roster ── */}
-            <div className="animate-fade-in anim-d2">
-              <TeamRoster developers={aggregatedDevs} onDevClick={setSelectedDev} />
-            </div>
-          </div>
-        ) : view === "bugs" ? (
-          <IntegrationBugsView
-            bugs={activeBugs}
-            onBack={() => setView("dashboard")}
-          />
-        ) : (
-          <BugLeakageView
-            from={activeMonths[0] || selectedMonth}
-            to={activeMonths[activeMonths.length - 1] || selectedMonth}
-            onBack={() => setView("dashboard")}
-          />
-        )}
-      </main>
+          ) : view === "team" ? (
+            <TeamView />
+          ) : view === "bugs" ? (
+            <IntegrationBugsView
+              bugs={activeBugs}
+              onBack={() => setView("dashboard")}
+            />
+          ) : (
+            <BugLeakageView
+              from={activeMonths[0] || selectedMonth}
+              to={activeMonths[activeMonths.length - 1] || selectedMonth}
+              onBack={() => setView("dashboard")}
+            />
+          )}
+        </main>
+      </div>
 
       <MethodologyModal open={methodologyOpen} onClose={() => setMethodologyOpen(false)} />
 

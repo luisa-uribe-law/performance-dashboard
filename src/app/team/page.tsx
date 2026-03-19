@@ -113,7 +113,6 @@ export default function TeamPage() {
                   <tr className="bg-[var(--surface)]">
                     <th className="py-2 px-4 text-left text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">Name</th>
                     <th className="py-2 px-4 text-left text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">Email</th>
-                    <th className="py-2 px-4 text-left text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">GitHub</th>
                     <th className="py-2 px-4 text-center text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">Squad</th>
                     <th className="py-2 px-4 text-center text-[10px] font-medium uppercase tracking-wider text-[var(--muted)]">Status</th>
                   </tr>
@@ -141,15 +140,6 @@ export default function TeamPage() {
                         </div>
                       </td>
                       <td className="py-2.5 px-4 text-[12px] text-[var(--muted)]">{dev.email}</td>
-                      <td className="py-2.5 px-4">
-                        {dev.github ? (
-                          <a href={`https://github.com/${dev.github}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[var(--accent)] hover:underline">
-                            @{dev.github}
-                          </a>
-                        ) : (
-                          <span className="text-[12px] text-[var(--muted-dim)]">—</span>
-                        )}
-                      </td>
                       <td className="py-2.5 px-4 text-center">
                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border" style={{ color: squad.color, borderColor: squad.color }}>
                           {SQUADS.find(s => s.id === dev.group)?.label || dev.group}

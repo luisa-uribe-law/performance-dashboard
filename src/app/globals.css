@@ -2,43 +2,53 @@
 
 :root {
   /* ── Yuno Brand ── */
-  --yuno-blue: #4D5BF9;
-  --yuno-blue-light: #7B88FF;
+  --yuno-blue: #3E4FE0;
+  --yuno-blue-light: #5A6AEE;
 
-  /* ── Surfaces ── lighter, cleaner dark */
-  --background: #1C1E2E;
-  --surface: #252838;
-  --surface-hover: #2E3148;
-  --card: #252838;
-  --card-hover: #2C2F42;
-  --border: #353858;
-  --border-light: #454870;
+  /* ── Surfaces ── clean white palette */
+  --background: #F5F6FA;
+  --surface: #FFFFFF;
+  --surface-hover: #F0F1F7;
+  --card: #FFFFFF;
+  --card-hover: #F8F9FC;
+  --border: #E0E2EE;
+  --border-light: #C8CBE0;
 
-  /* ── Text ── bright and legible */
-  --foreground: #FFFFFF;
-  --foreground-secondary: #E4E6F4;
-  --muted: #B0B4D0;
-  --muted-dim: #7A7EA0;
+  /* ── Text ── dark and legible */
+  --foreground: #282A30;
+  --foreground-secondary: #3D4055;
+  --muted: #6B7094;
+  --muted-dim: #9498B5;
 
-  /* ── Semantic ── restrained palette, mostly blue + purple */
-  --accent: #4D5BF9;
-  --accent-light: #7B88FF;
-  --success: #6CCF7F;
-  --warning: #E8A44A;
-  --danger: #E06060;
-  --oncall: #A78BFA;
-  --oncall-light: #C4B5FD;
+  /* ── Semantic ── Yuno brand colors */
+  --accent: #3E4FE0;
+  --accent-light: #5A6AEE;
+  --success: #2B9F47;
+  --warning: #D4890A;
+  --danger: #D43D3D;
+  --oncall: #7C5CC4;
+  --oncall-light: #9B7FDB;
+
+  /* ── Extra ── */
+  --lilac: #E8EAF5;
+  --green: #E0ED80;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--border) var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Selection */
+::selection {
+  background: var(--lilac);
+  color: var(--foreground);
 }
 
 /* Fade-in animation */
@@ -113,7 +123,7 @@ body {
   border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
 }
 .chat-markdown code {
-  background: var(--surface);
+  background: var(--lilac);
   padding: 0.1em 0.3em;
   border-radius: 4px;
   font-size: 0.9em;

@@ -39,7 +39,7 @@ export default function DevProfileModal({ developer, allMonths, aggregated, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[var(--border-light)] bg-[var(--background)] shadow-2xl animate-fade-in"
         onClick={e => e.stopPropagation()}
@@ -60,7 +60,7 @@ export default function DevProfileModal({ developer, allMonths, aggregated, onCl
             </div>
             <p className="text-xs text-[var(--muted)]">{squad} &middot; {isAggregated ? `${formatMonth(allMonths[0]?.month || latest.month)} — ${formatMonth(allMonths[allMonths.length - 1]?.month || latest.month)}` : formatMonth(latest.month)}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-white hover:border-[var(--border-light)] transition-colors">
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--border-light)] transition-colors">
             &times;
           </button>
         </div>

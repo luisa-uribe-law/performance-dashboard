@@ -25,7 +25,7 @@ function InsightCard({ label, name, children, color, onClick, deactivated }: {
       <div className="text-[10px] uppercase tracking-wider font-semibold mb-1" style={{ color }}>{label}</div>
       {/* Name — fixed */}
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-[15px] font-bold text-[var(--foreground)] group-hover:text-white transition-colors truncate">{name}</span>
+        <span className="text-[15px] font-bold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors truncate">{name}</span>
         {deactivated && (
           <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--muted)]/15 text-[var(--muted)] shrink-0">
             Deactivated
@@ -57,7 +57,7 @@ export default function Insights({ open, onClose, developers, currentTeam, prevT
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[80px] px-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden animate-fade-in">

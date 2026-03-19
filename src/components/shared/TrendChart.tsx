@@ -20,15 +20,15 @@ interface TrendChartProps {
 
 function resolveColor(color: string): string {
   const map: Record<string, string> = {
-    "var(--accent)": "#4D5BF9",
-    "var(--accent-light)": "#7B88FF",
-    "var(--yuno-blue)": "#4D5BF9",
-    "var(--success)": "#6CCF7F",
-    "var(--yuno-green)": "#6CCF7F",
-    "var(--danger)": "#E06060",
-    "var(--warning)": "#E8A44A",
-    "var(--oncall)": "#A78BFA",
-    "var(--oncall-light)": "#C4B5FD",
+    "var(--accent)": "#3E4FE0",
+    "var(--accent-light)": "#5A6AEE",
+    "var(--yuno-blue)": "#3E4FE0",
+    "var(--success)": "#2B9F47",
+    "var(--yuno-green)": "#2B9F47",
+    "var(--danger)": "#D43D3D",
+    "var(--warning)": "#D4890A",
+    "var(--oncall)": "#7C5CC4",
+    "var(--oncall-light)": "#9B7FDB",
   };
   return map[color] || color;
 }
@@ -45,12 +45,12 @@ function formatX(val: any): string {
 }
 
 const tooltipStyle = {
-  background: "#252838",
-  border: "1px solid #454870",
+  background: "#FFFFFF",
+  border: "1px solid #E0E2EE",
   borderRadius: 10,
   fontSize: 12,
-  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-  color: "#FFFFFF",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+  color: "#282A30",
 };
 
 export default function TrendChart({
@@ -68,12 +68,12 @@ export default function TrendChart({
     return (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={barData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#353858" vertical={false} />
-          <XAxis dataKey={xKey} tick={{ fill: "#B0B4D0", fontSize: 11 }} tickFormatter={(v, i) => {
+          <CartesianGrid strokeDasharray="3 3" stroke="#E0E2EE" vertical={false} />
+          <XAxis dataKey={xKey} tick={{ fill: "#6B7094", fontSize: 11 }} tickFormatter={(v, i) => {
             const label = formatX(v);
             return barData[i]?._isPartial ? `${label}*` : label;
-          }} axisLine={{ stroke: "#333658" }} />
-          <YAxis tick={{ fill: "#B0B4D0", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
+          }} axisLine={{ stroke: "#E0E2EE" }} />
+          <YAxis tick={{ fill: "#6B7094", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => {
             const label = formatX(v);
             const isPartial = barData.find(d => d[xKey] === v)?._isPartial;
@@ -131,12 +131,12 @@ export default function TrendChart({
               </linearGradient>
             ))}
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#353858" vertical={false} />
-          <XAxis dataKey={xKey} tick={{ fill: "#B0B4D0", fontSize: 11 }} tickFormatter={(v) => {
+          <CartesianGrid strokeDasharray="3 3" stroke="#E0E2EE" vertical={false} />
+          <XAxis dataKey={xKey} tick={{ fill: "#6B7094", fontSize: 11 }} tickFormatter={(v) => {
             const label = formatX(v);
             return isPartial && v === data[data.length - 1][xKey] ? `${label}*` : label;
-          }} axisLine={{ stroke: "#333658" }} />
-          <YAxis tick={{ fill: "#B0B4D0", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
+          }} axisLine={{ stroke: "#E0E2EE" }} />
+          <YAxis tick={{ fill: "#6B7094", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => {
             const label = formatX(v);
             return isPartial && v === data[data.length - 1][xKey] ? `${label} (in progress)` : label;
@@ -145,7 +145,7 @@ export default function TrendChart({
             <Area key={a.key} type="monotone" dataKey={a.key} stroke={resolveColor(a.color)} fill={`url(#grad-${a.key})`} name={a.name}
               strokeWidth={2.5}
               dot={{ r: 4, fill: resolveColor(a.color), strokeWidth: 0 }}
-              activeDot={{ r: 6, strokeWidth: 2, stroke: resolveColor(a.color), fill: "#1C1E2E" }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: resolveColor(a.color), fill: "#FFFFFF" }}
               animationDuration={800}
               connectNulls={false}
             />
@@ -157,7 +157,7 @@ export default function TrendChart({
               x={partialPoint[xKey]}
               y={partialPoint[a.key]}
               r={5}
-              fill="#1C1E2E"
+              fill="#FFFFFF"
               stroke={resolveColor(a.color)}
               strokeWidth={2}
               strokeDasharray="3 2"
@@ -176,12 +176,12 @@ export default function TrendChart({
     return (
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#353858" vertical={false} />
-          <XAxis dataKey={xKey} tick={{ fill: "#B0B4D0", fontSize: 11 }} tickFormatter={(v) => {
+          <CartesianGrid strokeDasharray="3 3" stroke="#E0E2EE" vertical={false} />
+          <XAxis dataKey={xKey} tick={{ fill: "#6B7094", fontSize: 11 }} tickFormatter={(v) => {
             const label = formatX(v);
             return isPartial && v === data[lastIdx][xKey] ? `${label}*` : label;
-          }} axisLine={{ stroke: "#333658" }} />
-          <YAxis tick={{ fill: "#B0B4D0", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
+          }} axisLine={{ stroke: "#E0E2EE" }} />
+          <YAxis tick={{ fill: "#6B7094", fontSize: 11 }} domain={yDomain} tickFormatter={yTickFormat} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => {
             const label = formatX(v);
             return isPartial && v === data[lastIdx][xKey] ? `${label} (in progress)` : label;
@@ -198,14 +198,14 @@ export default function TrendChart({
                     key={`dot-${l.key}-${index}`}
                     cx={cx} cy={cy}
                     r={isLast ? 5 : 4}
-                    fill={isLast ? "#1C1E2E" : resolveColor(l.color)}
+                    fill={isLast ? "#FFFFFF" : resolveColor(l.color)}
                     stroke={isLast ? resolveColor(l.color) : "none"}
                     strokeWidth={isLast ? 2 : 0}
                     strokeDasharray={isLast ? "3 2" : undefined}
                   />
                 );
               }}
-              activeDot={{ r: 6, strokeWidth: 2, stroke: resolveColor(l.color), fill: "#1C1E2E" }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: resolveColor(l.color), fill: "#FFFFFF" }}
               animationDuration={800}
             />
           ))}

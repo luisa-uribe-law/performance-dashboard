@@ -42,7 +42,7 @@ function BarRow({ name, value, label, max, color, onClick }: { name: string; val
   const pct = Math.min(100, (value / max) * 100);
   return (
     <button onClick={onClick} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
-      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{name}</span>
+      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-[var(--accent)] transition-colors">{name}</span>
       <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
         <div className="h-full rounded-full animate-grow" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
@@ -112,7 +112,7 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
             <div className="space-y-0 max-h-[200px] overflow-y-auto pr-1">
               {sortedByTasks.map(d => (
                 <button key={d.developer} onClick={() => onDevClick(d.developer)} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
-                  <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{d.developer}</span>
+                  <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-[var(--accent)] transition-colors">{d.developer}</span>
                   <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
                     <div className="h-full rounded-full animate-grow" style={{ width: `${Math.min(100, (d.tasksCompleted / maxTasks) * 100)}%`, backgroundColor: "var(--accent)" }} />
                   </div>
@@ -207,7 +207,7 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
               const entry = chartData[index];
               if (!entry || entry.total === 0) return null;
               return (
-                <text x={x + width / 2} y={y - 4} textAnchor="middle" fill="#B0B4D0" fontSize={10} fontWeight="bold">
+                <text x={x + width / 2} y={y - 4} textAnchor="middle" fill="#6B7094" fontSize={10} fontWeight="bold">
                   {entry.total}
                 </text>
               );
@@ -223,7 +223,7 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
               return (
                 <g transform={`translate(${x},${y})`}>
                   {isFirst && (
-                    <text x={20} y={22} textAnchor="middle" fill="#B0B4D0" fontSize={10}>
+                    <text x={20} y={22} textAnchor="middle" fill="#6B7094" fontSize={10}>
                       {entry.monthLabel}
                     </text>
                   )}
@@ -237,11 +237,11 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
             return (
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={chartData} margin={{ top: 15, right: 10, left: -10, bottom: 22 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#353858" vertical={false} />
-                  <XAxis dataKey="xKey" tick={renderXTick} tickLine={false} axisLine={{ stroke: "#333658" }} interval={0} />
-                  <YAxis tick={{ fill: "#B0B4D0", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E0E2EE" vertical={false} />
+                  <XAxis dataKey="xKey" tick={renderXTick} tickLine={false} axisLine={{ stroke: "#E0E2EE" }} interval={0} />
+                  <YAxis tick={{ fill: "#6B7094", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ background: "#252838", border: "1px solid #454870", borderRadius: 10, fontSize: 12, color: "#fff" }}
+                    contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E2EE", borderRadius: 10, fontSize: 12, color: "#282A30", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     labelFormatter={(_: any, payload: any) => {
                       const entry = payload?.[0]?.payload;
@@ -284,7 +284,7 @@ export default function IntegrationPanel({ teamData, developers, selectedMonth, 
                   const teamPct = total > 0 ? (teamCount / total) * 100 : 0;
                   return (
                     <button key={d.developer} onClick={() => onDevClick(d.developer)} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
-                      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{d.developer}</span>
+                      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-[var(--accent)] transition-colors">{d.developer}</span>
                       <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
                         <div className="h-full flex animate-grow" style={{ width: `${pct}%` }}>
                           {merchantCount > 0 && <div className="h-full" style={{ width: `${merchantPct}%`, backgroundColor: "#f59e0b" }} title={`Merchant: ${merchantCount}`} />}

@@ -34,7 +34,7 @@ export default function OnCallHeroes({ developers, onDevClick }: Props) {
             icon="🎫" title="Ticket Machine" subtitle="Most tickets resolved"
             developer={ticketMachine.developer}
             value={`${ticketMachine.ticketsResolved} tickets`}
-            color="#A78BFA"
+            color="var(--oncall)"
             onClick={() => onDevClick(ticketMachine.developer)}
           />
         )}

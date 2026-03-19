@@ -39,7 +39,7 @@ function DevRow({ name, value, label, max, color, onClick }: { name: string; val
   const pct = Math.min(100, (value / max) * 100);
   return (
     <button onClick={onClick} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
-      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{name}</span>
+      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-[var(--oncall)] transition-colors">{name}</span>
       <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
         <div className="h-full rounded-full animate-grow" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
@@ -310,7 +310,7 @@ export default function OnCallPanel({ teamData, priorityData, bugSla, selectedMo
                   const pct = Math.min(100, (d.medianResolutionHrs / (oncallDevsRes[oncallDevsRes.length - 1]?.medianResolutionHrs || 1)) * 100);
                   return (
                     <button key={d.developer} onClick={() => onDevClick(d.developer)} className="flex items-center gap-2 group w-full text-left hover:bg-[var(--surface-hover)] rounded-md px-1.5 py-1 -mx-1.5 transition-colors">
-                      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-white transition-colors">{d.developer}</span>
+                      <span className="text-[11px] text-[var(--foreground)] w-28 truncate group-hover:text-[var(--oncall)] transition-colors">{d.developer}</span>
                       <div className="flex-1 h-4 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
                         <div className="h-full rounded-full animate-grow" style={{ width: `${pct}%`, backgroundColor: "var(--oncall)" }} />
                       </div>

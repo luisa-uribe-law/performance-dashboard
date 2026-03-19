@@ -25,7 +25,7 @@ export default function AwardCard({ title, subtitle, developer, value, icon, col
         </div>
       </div>
       <div className="mt-auto">
-        <div className="text-[15px] font-bold text-[var(--foreground)] group-hover:text-white transition-colors truncate">{developer}</div>
+        <div className="text-[15px] font-bold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors truncate">{developer}</div>
         <div className="text-xs font-medium mt-0.5" style={{ color }}>{value}</div>
       </div>
     </div>

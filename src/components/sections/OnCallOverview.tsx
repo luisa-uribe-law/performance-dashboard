@@ -21,7 +21,7 @@ export default function OnCallOverview({ teamData, priorityData, selectedMonth }
           data={teamData}
           xKey="month"
           areas={[
-            { key: "ticketsResolved", color: "#A78BFA", name: "Tickets Resolved" },
+            { key: "ticketsResolved", color: "var(--oncall)", name: "Tickets Resolved" },
             { key: "slaCompliancePct", color: "var(--yuno-green)", name: "SLA %" },
           ]}
           height={180}

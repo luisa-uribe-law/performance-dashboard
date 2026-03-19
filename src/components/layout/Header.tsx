@@ -137,7 +137,7 @@ export default function Header({
         {/* Quick presets */}
         <div className="w-px h-5 bg-[var(--border)]" />
         <div className="flex gap-1">
-          {months.slice(-3).map(m => (
+          {months.slice(-4).map(m => (
             <button
               key={m}
               onClick={() => update({ mode: "month", selectedMonth: m })}
@@ -150,16 +150,6 @@ export default function Header({
               {formatMonth(m)}
             </button>
           ))}
-          <button
-            onClick={() => update({ mode: "range", rangeFrom: months[0] || "", rangeTo: months[months.length - 1] || "" })}
-            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-              mode === "range" && rangeFrom === months[0] && rangeTo === months[months.length - 1]
-                ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30"
-                : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]"
-            }`}
-          >
-            All Time
-          </button>
         </div>
 
         {/* Spacer pushes search + group to the right */}

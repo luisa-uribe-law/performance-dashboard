@@ -140,5 +140,44 @@ export interface LeakageData {
   skippedNonRoster: number; // tasks excluded because assignee is not in the team roster
 }
 
+// ── Time Blocked Analysis ──
+
+export interface StatusTransition {
+  status: string;
+  enteredAt: string;   // ISO datetime
+  exitedAt: string | null; // ISO datetime, null if still in this status
+  durationDays: number;
+  category: "queue" | "active" | "blocked" | "done";
+}
+
+export interface TimeBlockedTicket {
+  key: string;
+  summary: string;
+  developer: string;
+  weight: number;
+  createdDate: string;       // ISO date
+  completedDate: string;     // ISO date
+  leadTimeDays: number;      // created → done (calendar days)
+  activeTimeDays: number;    // time in "active" statuses
+  blockedTimeDays: number;   // time in "blocked" + "queue" statuses
+  blockedPct: number;        // blockedTimeDays / leadTimeDays * 100
+  transitions: StatusTransition[];
+}
+
+export interface TimeBlockedMonthly {
+  month: string;
+  totalTasks: number;
+  avgLeadTimeDays: number;
+  avgActiveTimeDays: number;
+  avgBlockedTimeDays: number;
+  avgBlockedPct: number;
+  medLeadTimeDays: number;
+  medActiveTimeDays: number;
+  medBlockedTimeDays: number;
+  medBlockedPct: number;
+  outlierCount: number;
+  tickets: TimeBlockedTicket[];
+}
+
 export type GroupFilter = "all" | Squad;
 

@@ -104,6 +104,29 @@ for (const month of months) {
   }
 }
 
+// Also sync time-blocked data for the current month
+for (const month of months) {
+  try {
+    console.log(`  Syncing time-blocked ${month}...`);
+    const resp = await fetch(`http://localhost:${port}/api/time-blocked?months=${month}&sync=true`);
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.error(`  ERROR time-blocked ${month}: ${resp.status} ${body.slice(0, 200)}`);
+      hasErrors = true;
+      continue;
+    }
+    const data = await resp.json();
+    const ticketCount = data[0]?.tickets?.length || 0;
+    // The API route already writes to disk via writeCachedTimeBlocked,
+    // but also write here to ensure the file is committed by git
+    writeFileSync(`${dataDir}/time-blocked-${month}.json`, JSON.stringify(data[0]));
+    console.log(`  ✓ time-blocked ${month}: ${ticketCount} tickets`);
+  } catch (err) {
+    console.error(`  ERROR time-blocked ${month}: ${err.message}`);
+    hasErrors = true;
+  }
+}
+
 server.close();
 console.log(hasErrors ? "\nCompleted with errors." : "\nAll months synced successfully.");
 process.exit(hasErrors ? 1 : 0);

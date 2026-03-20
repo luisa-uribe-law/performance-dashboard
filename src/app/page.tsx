@@ -9,6 +9,7 @@ import KpiCard from "@/components/shared/KpiCard";
 import DevProfileModal from "@/components/shared/DevProfileModal";
 import IntegrationBugsView from "@/components/shared/IntegrationBugsView";
 import BugLeakageView from "@/components/shared/BugLeakageView";
+import TimeBlockedView from "@/components/shared/TimeBlockedView";
 import MethodologyModal from "@/components/shared/MethodologyModal";
 import IntegrationPanel from "@/components/sections/IntegrationPanel";
 import OnCallPanel from "@/components/sections/OnCallPanel";
@@ -16,7 +17,7 @@ import Insights from "@/components/sections/Insights";
 import TeamRoster from "@/components/sections/TeamRoster";
 import TeamView from "@/components/sections/TeamView";
 
-type View = "dashboard" | "bugs" | "leakage" | "team";
+type View = "dashboard" | "bugs" | "leakage" | "team" | "time-blocked";
 
 function computeActiveMonths(dr: DateRange, allMonths: string[]): string[] {
   if (dr.mode === "month") return [dr.selectedMonth].filter(Boolean);
@@ -249,10 +250,11 @@ export default function Dashboard() {
       {/* ── Left Sidebar (below top bar) ── */}
       <aside className="fixed top-12 left-0 bottom-0 w-14 lg:w-48 border-r border-[var(--border)] bg-[var(--card)] flex flex-col py-2 z-40">
         {[
-          { id: "dashboard" as View, label: "Dashboard", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /> },
-          { id: "team" as View, label: "Team", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
-          { id: "bugs" as View, label: "Bugs per Provider", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /> },
-          { id: "leakage" as View, label: "Bug Leakage", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+          { id: "dashboard" as View, label: "Dashboard", icon: <><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></> },
+          { id: "team" as View, label: "Team", icon: <><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></> },
+          { id: "bugs" as View, label: "Bugs per Provider", icon: <>{/* Ladybug */}<ellipse cx="12" cy="13" rx="5" ry="6" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 7V19" /><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 11h9M7.2 15h9.6" /><circle cx="10" cy="6" r="1.2" fill="currentColor" /><circle cx="14" cy="6" r="1.2" fill="currentColor" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 7.5L6 5M15 7.5L18 5" /><path strokeLinecap="round" strokeLinejoin="round" d="M7 12L4 10.5M17 12l3-1.5M7 16L4.5 18M17 16l2.5 2" /></> },
+          { id: "leakage" as View, label: "Bug Leakage", icon: <>{/* Timer / stopwatch */}<circle cx="12" cy="13" r="7" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 9.5V13l2.5 2.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M10 4h4" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v2" /><path strokeLinecap="round" strokeLinejoin="round" d="M18.5 8.5L19.5 7.5" /></> },
+          { id: "time-blocked" as View, label: "Time Blocked", icon: <><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 8l8 8M16 8l-8 8" /></> },
         ].map(item => (
           <button
             key={item.id}
@@ -374,10 +376,15 @@ export default function Dashboard() {
               bugs={activeBugs}
               onBack={() => setView("dashboard")}
             />
-          ) : (
+          ) : view === "leakage" ? (
             <BugLeakageView
               from={activeMonths[0] || selectedMonth}
               to={activeMonths[activeMonths.length - 1] || selectedMonth}
+              onBack={() => setView("dashboard")}
+            />
+          ) : (
+            <TimeBlockedView
+              months={activeMonths.length > 0 ? activeMonths : [selectedMonth]}
               onBack={() => setView("dashboard")}
             />
           )}

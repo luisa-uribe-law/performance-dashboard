@@ -1,4 +1,4 @@
-import { PerformanceData, GroupFilter, DeveloperMonthly, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics, Developer, BugTicket, OnCallTicket } from "./types";
+import { PerformanceData, GroupFilter, DeveloperMonthly, MonthlyTeamMetrics, OnCallPriorityMetrics, BugSlaMetrics, Developer, BugTicket, OnCallTicket, TimeBlockedMonthly } from "./types";
 import { syncMonth, getRosterForMonth, SyncResult } from "./jira";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -54,6 +54,25 @@ function readCachedMonth(month: string): SyncResult | null {
 export function writeCachedMonth(month: string, data: SyncResult): void {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   const filePath = path.join(DATA_DIR, `sync-${month}.json`);
+  fs.writeFileSync(filePath, JSON.stringify(data), "utf-8");
+}
+
+// ── Time-blocked cached JSON ──
+
+export function readCachedTimeBlocked(month: string): TimeBlockedMonthly | null {
+  try {
+    const filePath = path.join(DATA_DIR, `time-blocked-${month}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    const raw = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(raw) as TimeBlockedMonthly;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCachedTimeBlocked(month: string, data: TimeBlockedMonthly): void {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  const filePath = path.join(DATA_DIR, `time-blocked-${month}.json`);
   fs.writeFileSync(filePath, JSON.stringify(data), "utf-8");
 }
 

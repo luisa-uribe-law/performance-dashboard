@@ -125,7 +125,7 @@ export default function MethodologyModal({ open, onClose }: Props) {
           <Section title="Integration Requests (DEM Board)" color="var(--accent)">
             <div className="space-y-2">
               <Def label="Completed Tasks" color="var(--accent)">
-                Count of Epics + standalone Stories (excluding &ldquo;Dev Validation&rdquo; stories) + Tech Debt items from the DEM board that changed to <strong className="text-[var(--foreground)]">Done</strong> or <strong className="text-[var(--foreground)]">Implementation Complete</strong> during the month. Only items still in that status are counted (reverted items are excluded).
+                Count of Epics + standalone Stories (excluding &ldquo;Dev Validation&rdquo; stories) + Tech Debt items from the DEM board that reached <strong className="text-[var(--foreground)]">Done</strong> during the month. Before March 18, 2026, <strong className="text-[var(--foreground)]">Implementation Complete</strong> was also accepted. Sub-stories belonging to an Epic are excluded (they are implementation tasks, not integrations). Tasks are attributed to the month their <code className="text-[10px] bg-[var(--surface)] px-1 rounded">statuscategorychangedate</code> falls in (using the local timestamp, not UTC).
               </Def>
               <Def label="Tasks / Developer" color="var(--accent)">
                 Total Completed Tasks divided by the number of Active Developers (developers who completed at least 1 DEM task or resolved at least 1 YSHUB ticket in the month).
@@ -146,10 +146,10 @@ export default function MethodologyModal({ open, onClose }: Props) {
           <Section title="On-Call Support (YSHUB Board)" color="var(--oncall)">
             <div className="space-y-2">
               <Def label="Tickets Resolved (Team)" color="var(--oncall)">
-                Total count of YSHUB tickets (component = Integration) that changed to <strong className="text-[var(--foreground)]">Done, Resolved, Closed, Canceled, or Deployment in Queue</strong> during the month. This includes <em>all</em> ticket types (Tasks, Bugs, etc.) and <em>all</em> final statuses including Canceled. This gives the full picture of team throughput.
+                Total count of YSHUB tickets (component = Integration) that reached <strong className="text-[var(--foreground)]">Done, Resolved, Closed, or Deployment in Queue</strong> during the month (excludes Canceled). Only tickets whose <code className="text-[10px] bg-[var(--surface)] px-1 rounded">statuscategorychangedate</code> falls within the month are counted.
               </Def>
               <Def label="Tickets (per Developer)" color="var(--oncall)">
-                Individual developer ticket counts <em>exclude</em> Canceled tickets. Only tickets that reached Done, Resolved, Closed, or Deployment in Queue are counted at the individual level, since canceled tickets don&apos;t represent resolved work.
+                Same criteria as Team count, but attributed to the developer in the Jira <strong className="text-[var(--foreground)]">Assignee</strong> field. Only tickets assigned to a roster member who was active in that month are counted.
               </Def>
               <Def label="Ticket Assignment" color="var(--oncall)">
                 On-call tickets are attributed to the developer in the Jira <strong className="text-[var(--foreground)]">Assignee</strong> field, matched to the team roster.
@@ -224,7 +224,31 @@ export default function MethodologyModal({ open, onClose }: Props) {
             </div>
           </Section>
 
-          {/* ── 8. INSIGHTS & AWARDS ── */}
+          {/* ── 8. BUG LEAKAGE ── */}
+          <Section title="Bug Leakage" color="var(--danger)">
+            <div className="space-y-2">
+              <p className="text-[11px] text-[var(--muted)] leading-relaxed">
+                Bug Leakage measures how many completed integrations later had bugs reported against them. It uses the same integration list as the main dashboard (from cached sync files) to ensure consistent counts.
+              </p>
+              <Def label="Integrations" color="var(--danger)">
+                The same DEM tasks (Epics, standalone Stories, Tech Debt) counted in the main dashboard for the selected date range.
+              </Def>
+              <Def label="Bug Linking" color="var(--danger)">
+                YSHUB bugs (type = Bug, component = Integration) are linked to DEM integrations via Jira <strong className="text-[var(--foreground)]">linked work items</strong> (issue links). A bug is associated with an integration if it has a link to a DEM ticket in the selected period. Only bugs with completed triage are included (Responsible Party, Responsible, and Context fields must all be filled).
+              </Def>
+              <Def label="No Date Filter on Bugs" color="var(--danger)">
+                Bugs are matched regardless of when they were created. A bug reported months after an integration was deployed still counts against that integration.
+              </Def>
+              <Def label="Leakage Days" color="var(--danger)">
+                Number of days between the integration&apos;s completion date and the bug&apos;s creation date.
+              </Def>
+              <Def label="Bug-Free Rate" color="var(--success)">
+                Percentage of integrations in the period that have zero bugs linked to them.
+              </Def>
+            </div>
+          </Section>
+
+          {/* ── 9. INSIGHTS & AWARDS ── */}
           <Section title="Insights &amp; Awards" color="var(--foreground-secondary)">
             <div className="space-y-2">
               <Def label="Highest Output" color="var(--accent)">
@@ -251,7 +275,7 @@ export default function MethodologyModal({ open, onClose }: Props) {
             </div>
           </Section>
 
-          {/* ── 9. TEAM STRUCTURE ── */}
+          {/* ── 10. TEAM STRUCTURE ── */}
           <Section title="Team Structure &amp; Squads" color="var(--foreground-secondary)">
             <div className="space-y-2 text-[11px] text-[var(--muted)] leading-relaxed">
               <p>The team roster is maintained in a JSON file and can be edited via the <strong className="text-[var(--foreground)]">Team</strong> page. Each developer belongs to a squad and has a list of Jira display names used for matching.</p>
@@ -288,7 +312,7 @@ export default function MethodologyModal({ open, onClose }: Props) {
             </div>
           </Section>
 
-          {/* ── 10. DATA PIPELINE ── */}
+          {/* ── 11. DATA PIPELINE ── */}
           <Section title="Data Pipeline &amp; Caching" color="var(--foreground-secondary)">
             <div className="space-y-2 text-[11px] text-[var(--muted)] leading-relaxed">
               <p><strong className="text-[var(--foreground)]">Daily sync:</strong> A GitHub Actions cron job runs every day, pulling fresh data from Jira for all months. Results are cached as <code className="text-[10px] bg-[var(--surface)] px-1 rounded">data/sync-YYYY-MM.json</code> files and committed to the repo.</p>

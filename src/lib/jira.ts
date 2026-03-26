@@ -512,7 +512,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
   function completedInMonth(issue: JiraIssue): boolean {
     const raw = getFieldStr(issue, "statuscategorychangedate") || getFieldStr(issue, "resolutiondate");
     if (!raw) return true; // no date available, keep it
-    const completedMonth = parseJiraDate(raw).toISOString().slice(0, 7); // "2026-02"
+    const completedMonth = raw.slice(0, 7); // "2026-02" — use local date as-is, no UTC conversion
     return completedMonth === month;
   }
 
@@ -631,7 +631,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
         summary: getFieldStr(t, "summary"),
         weightedTasks: determineWeight(t),
         onTime: wasOnTime(t) ?? false,
-        closedDate: cd ? parseJiraDate(cd).toISOString().slice(0, 10) : null,
+        closedDate: cd ? cd.slice(0, 10) : null,
       };
     });
 
@@ -644,7 +644,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
         priority: (getField(t, "priority") as { name?: string })?.name || "Unknown",
         slaBreached: sla ? sla.breached : false,
         resolutionHrs: sla ? Math.round(sla.elapsedMs / (1000 * 60 * 60) * 10) / 10 : null,
-        closedDate: cd ? parseJiraDate(cd).toISOString().slice(0, 10) : null,
+        closedDate: cd ? cd.slice(0, 10) : null,
       };
     });
 
@@ -848,7 +848,7 @@ export async function syncMonth(month: string): Promise<SyncResult> {
       priority: (getField(t, "priority") as { name?: string })?.name || "Unknown",
       slaBreached: sla ? sla.breached : false,
       resolutionHrs: sla ? Math.round(sla.elapsedMs / (1000 * 60 * 60) * 10) / 10 : null,
-      closedDate: cd ? parseJiraDate(cd).toISOString().slice(0, 10) : null,
+      closedDate: cd ? cd.slice(0, 10) : null,
     };
   });
 
@@ -1112,7 +1112,7 @@ export async function computeTimeBlocked(month: string): Promise<TimeBlockedMont
   for (const issue of demTasks) {
     const raw = getFieldStr(issue, "statuscategorychangedate") || getFieldStr(issue, "resolutiondate");
     if (raw) {
-      const completedMonth = parseJiraDate(raw).toISOString().slice(0, 7);
+      const completedMonth = raw.slice(0, 7); // use local date as-is, no UTC conversion
       if (completedMonth !== month) continue;
     }
     const key = getIssueKey(issue);

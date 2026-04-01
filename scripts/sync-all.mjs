@@ -92,7 +92,14 @@ for (const month of months) {
       console.warn(`  ⚠ ${month}: sync returned 0 tasks and 0 tickets — keeping existing file`);
       console.warn(`    Debug: ${JSON.stringify(data.debug || {})}`);
       console.warn(`    ActiveDevs: ${data.teamMetrics?.activeDevelopers}, DevMetrics count: ${data.developerMetrics?.length}`);
-      hasErrors = true;
+      // Not an error — expected at the start of a new month with no completed work yet
+      continue;
+    }
+
+    // If it's a brand-new month with no data and no existing file, write the empty baseline
+    if (tasks === 0 && tickets === 0) {
+      writeFileSync(`${dataDir}/sync-${month}.json`, JSON.stringify(data));
+      console.log(`  ✓ ${month}: new month, 0 tasks, 0 tickets (baseline created)`);
       continue;
     }
 
